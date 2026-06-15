@@ -45,6 +45,11 @@ class ContextSafetySkillTest(unittest.TestCase):
         self.assertIn("docs/context-safety/handoff-rotation.md", reads)
         self.assertIn("templates/handoff-replacement.md", reads)
 
+    def test_skill_read_paths_exist(self):
+        metadata = parse_simple_yaml(SKILL_DIR / "skill.yaml")
+        missing = [path for path in metadata["reads"] if not (ROOT / path).exists()]
+        self.assertEqual(missing, [])
+
     def test_entrypoint_stays_short_and_excludes_heavy_runtime(self):
         entrypoint = (SKILL_DIR / "README.md").read_text(encoding="utf-8")
         self.assertLess(len(entrypoint.splitlines()), 80)
