@@ -318,7 +318,19 @@ LoopEngineer 可以在推进前审计当前状态是否仍可信。
 
 ## 产品表面
 
-LoopEngineer 计划以插件化控制面的形式交付。
+LoopEngineer 以插件化控制面形式交付。
+
+当前骨架已经提供插件 manifest 和顶层目录：
+
+```text
+.codex-plugin/plugin.json
+skills/
+scripts/
+schemas/
+templates/
+```
+
+后续 issue 会在这个骨架上扩展产品表面：
 
 ```text
 skills/
