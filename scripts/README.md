@@ -6,6 +6,8 @@ Current status:
 
 - `check_version.py` checks product version metadata, skill metadata, schema metadata,
   and the changelog release entry;
+- `check_release_readiness.py` aggregates release readiness checks without creating
+  tags, releases, packages, or other external artifacts;
 - `context_guard.py` checks text against a v1 context budget profile;
 - scripts must output machine-readable results and fail closed when added;
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
