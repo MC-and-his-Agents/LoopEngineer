@@ -46,6 +46,7 @@ class LoopRouterSkillTest(unittest.TestCase):
         metadata = parse_simple_yaml(SKILL_DIR / "skill.yaml")
         missing = [path for path in metadata["reads"] if not (ROOT / path).exists()]
         self.assertEqual(missing, [])
+        self.assertIn("docs/routing/heavy-trigger-policy.md", metadata["reads"])
 
     def test_entrypoint_stays_short_and_selection_only(self):
         entrypoint = (SKILL_DIR / "README.md").read_text(encoding="utf-8")
@@ -62,6 +63,16 @@ class LoopRouterSkillTest(unittest.TestCase):
             self.assertIn(profile, matrix_doc)
         self.assertIn("The router must not", profiles_doc)
         self.assertIn("Use the lowest matching profile", matrix_doc)
+
+    def test_router_references_heavy_trigger_policy(self):
+        metadata = parse_simple_yaml(SKILL_DIR / "skill.yaml")
+        entrypoint = (SKILL_DIR / "README.md").read_text(encoding="utf-8")
+        policy = (ROOT / "docs/routing/heavy-trigger-policy.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/routing/heavy-trigger-policy.md", metadata["reads"])
+        self.assertIn("Heavy trigger policy", entrypoint)
+        self.assertIn("explicit-only", policy)
+        self.assertIn("triggered by `direct`, `worker_lite`, or `scheduler_lite`", policy)
 
 
 if __name__ == "__main__":

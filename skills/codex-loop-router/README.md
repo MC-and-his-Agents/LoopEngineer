@@ -25,6 +25,7 @@ worker, scheduler, watcher, hook, MCP, or automation behavior.
 
 - Profile definitions: `docs/routing/route-profiles.md`
 - Trigger matrix: `docs/routing/trigger-matrix.md`
+- Heavy trigger policy: `docs/routing/heavy-trigger-policy.md`
 - Context budget: `docs/context-safety/context-budget.md`
 - No-inline policy: `docs/context-safety/no-inline-large-artifacts.md`
 

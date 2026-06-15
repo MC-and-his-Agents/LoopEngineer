@@ -8,6 +8,7 @@ requires:
 reads:
   - docs/routing/route-profiles.md
   - docs/routing/trigger-matrix.md
+  - docs/routing/heavy-trigger-policy.md
   - docs/context-safety/context-budget.md
   - docs/context-safety/no-inline-large-artifacts.md
 entrypoint: README.md
