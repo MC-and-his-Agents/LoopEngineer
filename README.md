@@ -319,7 +319,20 @@ Recovery should use GitHub, git, repository facts, state roots, handoff manifest
 
 ## Product Surfaces
 
-LoopEngineer is planned as a plugin-oriented control-plane package.
+LoopEngineer is a plugin-oriented control-plane package.
+
+The current skeleton provides the plugin manifest and top-level directories:
+
+```text
+.codex-plugin/plugin.json
+skills/
+scripts/
+schemas/
+templates/
+```
+
+The planned product surface expands from that skeleton as the related issues
+land:
 
 ```text
 skills/
