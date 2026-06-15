@@ -351,7 +351,6 @@ scripts/
 
 schemas/
   context-budget.schema.json
-  handoff-manifest.schema.json
   report.schema.json
   dispatch-table.schema.json
   scheduler-pool.schema.json

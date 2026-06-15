@@ -1,10 +1,10 @@
 # Templates
 
-This directory is the future home for reusable LoopEngineer templates.
+This directory contains reusable LoopEngineer templates.
 
 Current status:
 
-- no runtime template is introduced in this skeleton;
+- `handoff-replacement.md` defines the issue #8 replacement-thread prompt shape;
 - templates should carry compact locators and instructions instead of large artifacts;
 - handoff and locator templates should align with the context safety issues before use.
 
