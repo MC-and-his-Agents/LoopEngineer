@@ -1,0 +1,183 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          failed = []
+          for path in sorted(Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              try:
+                  json.loads(path.read_text(encoding="utf-8"))
+              except Exception as exc:
+                  failed.append(f"{path}: {exc}")
+
+          if failed:
+              print("Invalid JSON files:")
+              print("\n".join(failed))
+              raise SystemExit(1)
+          PY
+
+      - name: Validate repository baseline files
+        run: |
+          required_files=(
+            ".codex-plugin/plugin.json"
+            ".github/pull_request_template.md"
+            "AGENTS.md"
+            "CHANGELOG.md"
+            "LICENSE"
+            "README.md"
+            "README.zh-CN.md"
+            "VERSION"
+            "docs/adr/index.md"
+            "docs/roadmap.md"
+            "metadata/loopengineer.json"
+            "schemas/README.md"
+            "scripts/README.md"
+            "skills/README.md"
+            "templates/README.md"
+          )
+
+          missing=0
+          for path in "${required_files[@]}"; do
+            if [[ ! -f "$path" ]]; then
+              echo "Missing required file: $path"
+              missing=1
+            fi
+          done
+
+          exit "$missing"
+
+      - name: Validate pull request body
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+
+          body = os.environ.get("PR_BODY", "")
+          required_headings = [
+              "Summary",
+              "Scope",
+              "Validation",
+              "Non-goals",
+              "Risk",
+          ]
+
+          missing = [
+              heading
+              for heading in required_headings
+              if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", body)
+          ]
+
+          if missing:
+              print("Pull request body is missing required sections:")
+              for heading in missing:
+                  print(f"- ## {heading}")
+              raise SystemExit(1)
+          PY
+
+      - name: Validate Markdown hygiene
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          failures = []
+          for path in sorted(Path(".").rglob("*.md")):
+              if ".git" in path.parts:
+                  continue
+              for index, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                  if "\t" in line:
+                      failures.append(f"{path}:{index}: contains tab")
+                  if line.rstrip(" ") != line:
+                      failures.append(f"{path}:{index}: trailing space")
+
+          if failures:
+              print("Markdown hygiene failures:")
+              print("\n".join(failures))
+              raise SystemExit(1)
+          PY
+
+      - name: Check for committed local artifacts
+        run: |
+          python3 - <<'PY'
+          import subprocess
+
+          forbidden_prefixes = (
+              ".cache/",
+              ".pytest_cache/",
+              ".ruff_cache/",
+              ".mypy_cache/",
+              ".venv/",
+              "venv/",
+              ".vscode/",
+              ".idea/",
+              "__pycache__/",
+              "node_modules/",
+              "tmp/",
+              "temp/",
+          )
+          forbidden_suffixes = (
+              ".log",
+              ".tmp",
+              ".temp",
+              ".pyc",
+              ".pyo",
+              ".swp",
+              ".swo",
+              "~",
+          )
+          forbidden_names = {
+              ".DS_Store",
+              "Thumbs.db",
+          }
+
+          tracked = subprocess.check_output(
+              ["git", "ls-files"],
+              text=True,
+              encoding="utf-8",
+          ).splitlines()
+
+          failures = []
+          for path in tracked:
+              parts = path.split("/")
+              if any(path == prefix[:-1] or path.startswith(prefix) for prefix in forbidden_prefixes):
+                  failures.append(path)
+              elif any(part in forbidden_names for part in parts):
+                  failures.append(path)
+              elif path.endswith(forbidden_suffixes):
+                  failures.append(path)
+
+          if failures:
+              print("Forbidden local artifacts are tracked:")
+              print("\n".join(failures))
+              raise SystemExit(1)
+          PY
