@@ -20,7 +20,8 @@ source. LoopEngineer must not depend on that path at runtime.
 
 ## Imported Files
 
-- `README.md` from legacy `SKILL.md`
+- `references/imported-protocol.md` from legacy `SKILL.md`
+- `README.md` as the LoopEngineer short entrypoint
 - `agents/openai.yaml`
 - `references/lane-locks.md`
 - `references/orchestration-carrier.md`
@@ -33,7 +34,7 @@ source. LoopEngineer must not depend on that path at runtime.
 
 ## File Mapping
 
-- `SKILL.md` -> `README.md`
+- `SKILL.md` -> `references/imported-protocol.md`
 - `agents/openai.yaml` -> `agents/openai.yaml`
 - `references/*.md` -> `references/*.md`
 
@@ -44,11 +45,10 @@ source. LoopEngineer must not depend on that path at runtime.
 ## Boundary
 
 The import preserves the original observer, scheduler lifecycle, scheduler
-pool, and shared lane boundaries. Short entrypoint refactoring and protocol
-profile selection are handled separately by #15 and #16.
+pool, and shared lane boundaries. The full imported entry lives in
+`references/imported-protocol.md` so the skill `README.md` can remain a short
+entrypoint.
 
 ## Non-Goals
 
-- No short entrypoint refactor.
-- No protocol profile selection.
 - No runtime script, MCP, hook, automation, install, or register behavior.
