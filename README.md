@@ -438,35 +438,6 @@ Integration must go through an explicit adapter contract.
 
 ---
 
-## Status
-
-LoopEngineer is in early buildout.
-
-The current roadmap is maintained in [docs/roadmap.md](docs/roadmap.md) and is
-organized around:
-
-1. repository baseline and architecture decisions;
-2. context safety MVP;
-3. plugin skeleton and loop router;
-4. protocol profiles and skill refactor;
-5. deterministic scripts and schemas;
-6. loop audit, cost controls, and watcher/lane policies;
-7. optional MCP and hooks;
-8. external Loom integration.
-
-Priority order:
-
-```text
-Context safety first.
-Routing second.
-Heavy orchestration later.
-MCP and hooks last.
-```
-
-Architecture decisions are indexed in [docs/adr/index.md](docs/adr/index.md).
-
----
-
 ## Philosophy
 
 AI engineering is moving from prompts to loops.

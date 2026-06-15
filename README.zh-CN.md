@@ -24,6 +24,8 @@ LoopEngineer 是一个 **agent loop control plane**。
 
 - [路线图](docs/roadmap.md) 记录 milestone 顺序和 issue 范围。
 - [架构决策](docs/adr/index.md) 记录仓库、插件、技能和上下文安全边界。
+- [禁止内联大型工件策略](docs/context-safety/no-inline-large-artifacts.md)
+  定义哪些证据应进入工件，而不是线程消息。
 - [v0.1.0 手动发布计划](docs/releases/v0.1.0.md) 记录第一个发布检查清单和 tag 规则。
 
 ---
@@ -426,34 +428,6 @@ LoopEngineer 不拥有 .loom facts。
 LoopEngineer 不安装到 plugins/loom/skills。
 集成必须通过显式 adapter contract。
 ```
-
----
-
-## 当前状态
-
-LoopEngineer 处于早期建设阶段。
-
-当前路线图维护在 [docs/roadmap.md](docs/roadmap.md)，包括：
-
-1. 仓库基线与架构决策；
-2. 上下文安全最小版本；
-3. 插件骨架与轻量路由；
-4. 协议档位与技能重构；
-5. 确定性脚本与结构定义；
-6. 循环审计、成本控制与观察者策略；
-7. 可选 MCP 与钩子；
-8. Loom 外部插件集成。
-
-优先顺序：
-
-```text
-上下文安全优先。
-路由第二。
-重型编排靠后。
-MCP 和钩子最后。
-```
-
-架构决策索引维护在 [docs/adr/index.md](docs/adr/index.md)。
 
 ---
 
