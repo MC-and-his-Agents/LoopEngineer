@@ -2,6 +2,12 @@ name: CI
 
 on:
   pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
   push:
     branches:
       - main
@@ -131,6 +137,7 @@ jobs:
               ".ruff_cache/",
               ".mypy_cache/",
               ".venv/",
+              "venv/",
               ".vscode/",
               ".idea/",
               "__pycache__/",
