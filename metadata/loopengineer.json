@@ -7,11 +7,5 @@
   "protocolVersion": "1",
   "schemaMajorVersion": "1",
   "skillContractVersion": "1",
-  "adapterContractVersion": "0",
-  "defaultEntrypoint": "lightweight-router",
-  "capabilities": [
-    "context-safety",
-    "lightweight-routing",
-    "handoff-guard"
-  ]
+  "adapterContractVersion": "0"
 }
