@@ -24,6 +24,7 @@ LoopEngineer 是一个 **agent loop control plane**。
 
 - [路线图](docs/roadmap.md) 记录 milestone 顺序和 issue 范围。
 - [架构决策](docs/adr/index.md) 记录仓库、插件、技能和上下文安全边界。
+- [v0.1.0 手动发布计划](docs/releases/v0.1.0.md) 记录第一个发布检查清单和 tag 规则。
 
 ---
 
