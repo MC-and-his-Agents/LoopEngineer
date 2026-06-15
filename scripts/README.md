@@ -4,7 +4,7 @@ This directory is the future home for deterministic LoopEngineer scripts.
 
 Current status:
 
-- no executable script is implemented in this skeleton;
+- `context_guard.py` checks text against a v1 context budget profile;
 - scripts must output machine-readable results and fail closed when added;
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
 
