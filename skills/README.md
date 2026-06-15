@@ -4,7 +4,7 @@ This directory is the future home for LoopEngineer skill entrypoints.
 
 Current status:
 
-- no core skills are imported in this skeleton;
+- `codex-context-safety` provides the lightweight context safety entrypoint;
 - no heavy watcher, scheduler, or worker protocol is exposed here yet;
 - future work should keep short skill entries separate from heavier references.
 
