@@ -45,7 +45,6 @@ Each profile has:
 
 Allowed overflow actions are:
 
-- `send`
 - `write_artifact_send_locator`
 - `rotate_thread`
 

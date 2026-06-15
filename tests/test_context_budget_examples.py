@@ -13,7 +13,6 @@ REQUIRED_PROFILES = {
     "handoff_prompt",
 }
 OVERFLOW_ACTIONS = {
-    "send",
     "write_artifact_send_locator",
     "rotate_thread",
 }
@@ -96,6 +95,16 @@ class ContextBudgetExampleTest(unittest.TestCase):
     def test_invalid_example_is_invalid(self):
         data = load_json(ROOT / "schemas/v1/examples/context-budget.invalid.json")
         self.assertNotEqual(validate_context_budget(data), [])
+
+    def test_send_is_not_an_overflow_action(self):
+        data = load_json(ROOT / "schemas/v1/context-budget.default.json")
+        profile = dict(data["profiles"]["confirmation"])
+        profile["overflowAction"] = "send"
+        data["profiles"]["confirmation"] = profile
+        self.assertIn(
+            "confirmation.overflowAction is not supported",
+            validate_context_budget(data),
+        )
 
 
 if __name__ == "__main__":

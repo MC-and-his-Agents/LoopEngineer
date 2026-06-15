@@ -106,7 +106,6 @@
         },
         "overflowAction": {
           "enum": [
-            "send",
             "write_artifact_send_locator",
             "rotate_thread"
           ]
