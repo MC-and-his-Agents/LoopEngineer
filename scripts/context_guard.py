@@ -64,7 +64,6 @@ def validate_budget(data: dict) -> list[str]:
         if isinstance(budget, int) and isinstance(warning, int) and warning > budget:
             errors.append(f"{name}.warnAtTokens must not exceed budgetTokens")
         if profile.get("overflowAction") not in {
-            "send",
             "write_artifact_send_locator",
             "rotate_thread",
         }:

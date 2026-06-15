@@ -102,6 +102,35 @@ class ContextGuardTest(unittest.TestCase):
         self.assertEqual(payload["status"], "error")
         self.assertEqual(payload["suggestedAction"], "fix_budget_file")
 
+    def test_send_is_rejected_as_overflow_action(self):
+        budget = json.loads(BUDGET.read_text(encoding="utf-8"))
+        budget["profiles"]["confirmation"]["budgetTokens"] = 1
+        budget["profiles"]["confirmation"]["warnAtTokens"] = 1
+        budget["profiles"]["confirmation"]["overflowAction"] = "send"
+
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
+            json.dump(budget, handle)
+            budget_path = handle.name
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
+            handle.write("this input is over budget")
+            input_path = handle.name
+        try:
+            code, payload, _ = run_guard(
+                "--profile",
+                "confirmation",
+                "--input-file",
+                input_path,
+                "--budget-file",
+                budget_path,
+            )
+        finally:
+            Path(budget_path).unlink()
+            Path(input_path).unlink()
+        self.assertEqual(code, 2)
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["suggestedAction"], "fix_budget_file")
+        self.assertIn("overflowAction is unsupported", payload["error"])
+
     def test_warning_threshold_still_passes(self):
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as handle:
             handle.write("x" * 360)
