@@ -66,8 +66,9 @@ class CoreSkillProfileTest(unittest.TestCase):
         text = (ROOT / "docs" / "routing" / "heavy-trigger-policy.md").read_text(
             encoding="utf-8"
         )
+        normalized = " ".join(text.split())
         self.assertIn("imports the core orchestration skills", text)
-        self.assertIn("full\nprotocol references are read only after", text)
+        self.assertIn("full protocol references are read only after", normalized)
         self.assertNotIn("does not import heavy orchestration skills", text)
 
 

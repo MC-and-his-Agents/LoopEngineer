@@ -24,9 +24,10 @@ class HeavyTriggerPolicyTest(unittest.TestCase):
 
     def test_policy_keeps_runtime_out_of_scope(self):
         text = POLICY.read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
         self.assertIn("does not implement routing logic", text)
         self.assertIn("create runtime hooks", text)
-        self.assertIn("add MCP\nservers", text)
+        self.assertIn("add MCP servers", normalized)
         self.assertIn("start watcher threads", text)
         self.assertIn("install automations", text)
 
