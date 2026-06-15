@@ -1,0 +1,54 @@
+# LoopEngineer Roadmap
+
+LoopEngineer is an independent agent loop control-plane plugin. The roadmap is
+ordered to keep context safety and routing stable before heavier orchestration.
+
+Priority order:
+
+```text
+Context safety first.
+Router second.
+Heavy orchestration later.
+MCP and hooks last.
+```
+
+## Milestones
+
+| Milestone | Focus | Representative issues | Notes |
+| --- | --- | --- | --- |
+| M0 | Repository baseline and architecture decisions | #1, #2, #3, #4, #31 | Confirm boundaries, README, roadmap, ADR index, and collaboration templates. |
+| M1 | Context safety minimum version | #5, #6, #7, #8, #9, #32 | Define budgets, guards, no-inline policy, handoff, and context safety skill. |
+| M2 | Plugin skeleton and lightweight routing | #10, #11, #12, #33 | Add plugin structure and route work without triggering heavy protocols. |
+| M3 | Protocol profiles and skill refactor | #13, #14, #15, #16, #17, #34 | Import and split core skills with provenance and profile selection. |
+| M4 | Deterministic scripts and structure definitions | #18, #19, #20, #21, #22, #35, #46 | Add schemas, validation, state digest, and report consumption scripts. |
+| M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Add audit and coordination cost controls after core structures exist. |
+| M6 | Optional MCP and hooks | #28, #29, #30, #37 | Add only after context, routing, schemas, and scripts are stable. |
+| Loom integration | External plugin integration | #38, #39, #40, #41 | Define adapter boundaries before any install or register action. |
+| Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit. |
+
+## Current Scope
+
+The current baseline establishes:
+
+- LoopEngineer as a standalone Codex plugin repository;
+- MC-SKILLS as read-only provenance, not runtime dependency;
+- Loom as an optional external integration through an adapter contract;
+- context safety as the first runtime layer;
+- routing as the next layer after context safety;
+- heavy orchestration, MCP, hooks, and Loom adapter actions as later work.
+
+## Non-Goals
+
+Current baseline work does not:
+
+- import core skills;
+- implement scripts or schemas;
+- create watcher, scheduler, or worker threads;
+- replace GitHub, git, CI, review engines, or worktrees;
+- write Loom `.loom/` state;
+- add MCP servers, hooks, apps, or marketplace entries.
+
+## Issue Closeout
+
+Parent issues are closed only after their child issue scope is complete. For
+example, #31 remains open until all M0 child issues, including #3, have landed.

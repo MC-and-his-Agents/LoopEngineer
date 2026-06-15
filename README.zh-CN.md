@@ -20,6 +20,13 @@ LoopEngineer 是一个 **agent loop control plane**。
 
 ---
 
+## 项目记录
+
+- [路线图](docs/roadmap.md) 记录 milestone 顺序和 issue 范围。
+- [架构决策](docs/adr/index.md) 记录仓库、插件、技能和上下文安全边界。
+
+---
+
 ## 为什么 Agent Loop 需要工程化
 
 一个提示词可以让 agent 做对一次。
@@ -414,7 +421,7 @@ LoopEngineer 不安装到 plugins/loom/skills。
 
 LoopEngineer 处于早期建设阶段。
 
-当前路线图包括：
+当前路线图维护在 [docs/roadmap.md](docs/roadmap.md)，包括：
 
 1. 仓库基线与架构决策；
 2. 上下文安全最小版本；
@@ -433,6 +440,8 @@ LoopEngineer 处于早期建设阶段。
 重型编排靠后。
 MCP 和钩子最后。
 ```
+
+架构决策索引维护在 [docs/adr/index.md](docs/adr/index.md)。
 
 ---
 

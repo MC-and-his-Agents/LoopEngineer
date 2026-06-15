@@ -20,6 +20,14 @@ LoopEngineer is an **agent loop control plane**.
 
 ---
 
+## Project Records
+
+- [Roadmap](docs/roadmap.md) tracks the milestone order and issue scope.
+- [Architecture decisions](docs/adr/index.md) record repository, plugin, skill,
+  and context safety boundaries.
+
+---
+
 ## Why Agent Loops Need Engineering
 
 A single prompt can make an agent do something useful once.
@@ -414,7 +422,8 @@ Integration must go through an explicit adapter contract.
 
 LoopEngineer is in early buildout.
 
-The current roadmap is organized around:
+The current roadmap is maintained in [docs/roadmap.md](docs/roadmap.md) and is
+organized around:
 
 1. repository baseline and architecture decisions;
 2. context safety MVP;
@@ -433,6 +442,8 @@ Routing second.
 Heavy orchestration later.
 MCP and hooks last.
 ```
+
+Architecture decisions are indexed in [docs/adr/index.md](docs/adr/index.md).
 
 ---
 
