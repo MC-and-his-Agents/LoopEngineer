@@ -2,6 +2,10 @@
 
 This directory contains reusable LoopEngineer templates.
 
+GitHub-native issue and pull request templates live under `.github/`.
+This directory is reserved for reusable repository artifacts that are not
+GitHub form templates.
+
 Current status:
 
 - `handoff-replacement.md` defines the issue #8 replacement-thread prompt shape;

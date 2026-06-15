@@ -48,6 +48,10 @@ jobs:
         run: |
           required_files=(
             ".codex-plugin/plugin.json"
+            ".github/ISSUE_TEMPLATE/architecture.md"
+            ".github/ISSUE_TEMPLATE/safety.md"
+            ".github/ISSUE_TEMPLATE/script.md"
+            ".github/ISSUE_TEMPLATE/skill.md"
             ".github/pull_request_template.md"
             "AGENTS.md"
             "CHANGELOG.md"
