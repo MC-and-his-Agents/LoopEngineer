@@ -1,0 +1,11 @@
+{
+  "name": "LoopEngineer",
+  "product": "loopengineer",
+  "version": "0.1.0",
+  "status": "experimental",
+  "pluginApiVersion": "1",
+  "protocolVersion": "1",
+  "schemaMajorVersion": "1",
+  "skillContractVersion": "1",
+  "adapterContractVersion": "0"
+}
