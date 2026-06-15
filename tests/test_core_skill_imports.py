@@ -8,7 +8,8 @@ SKILLS = {
     "codex-thread-orchestration": {
         "issue": "#13",
         "source_path": "skills/codex-thread-orchestration/",
-        "references": {
+            "references": {
+            "imported-protocol.md",
             "gates-and-closeout.md",
             "goal-lifecycle.md",
             "heartbeat.md",
@@ -22,7 +23,8 @@ SKILLS = {
     "codex-scheduler-watcher": {
         "issue": "#14",
         "source_path": "skills/codex-scheduler-watcher/",
-        "references": {
+            "references": {
+            "imported-protocol.md",
             "lane-locks.md",
             "orchestration-carrier.md",
             "parallel-scheduling.md",
@@ -94,10 +96,9 @@ class CoreSkillImportTest(unittest.TestCase):
                 self.assertIn(f"Target path: `{expected['source_path']}`", source)
                 self.assertIn(SOURCE_COMMIT, source)
                 self.assertIn("2026-06-15T11:14:03+08:00", source)
-                self.assertIn("SKILL.md` -> `README.md", source)
+                self.assertIn("SKILL.md` -> `references/imported-protocol.md", source)
                 self.assertIn("LoopEngineer must not depend on that path at runtime", source)
                 self.assertIn(".DS_Store", source)
-                self.assertIn("No short entrypoint refactor", source)
                 self.assertIn("No runtime script, MCP, hook, automation", source)
 
     def test_imported_agents_declare_interface_prompt(self):
@@ -113,10 +114,18 @@ class CoreSkillImportTest(unittest.TestCase):
 
     def test_imported_entrypoints_preserve_protocol_semantics_before_refactor(self):
         thread_entry = (
-            ROOT / "skills" / "codex-thread-orchestration" / "README.md"
+            ROOT
+            / "skills"
+            / "codex-thread-orchestration"
+            / "references"
+            / "imported-protocol.md"
         ).read_text(encoding="utf-8")
         watcher_entry = (
-            ROOT / "skills" / "codex-scheduler-watcher" / "README.md"
+            ROOT
+            / "skills"
+            / "codex-scheduler-watcher"
+            / "references"
+            / "imported-protocol.md"
         ).read_text(encoding="utf-8")
 
         self.assertIn("Scheduler Quick Start", thread_entry)

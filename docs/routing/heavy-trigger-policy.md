@@ -8,14 +8,15 @@ automation behavior.
 
 ## Current Control
 
-LoopEngineer M2 does not import heavy orchestration skills. The repository only
-exposes lightweight entrypoints, and heavy protocols remain future work.
+LoopEngineer imports the core orchestration skills, but their heavy protocol
+content is explicit-only. The repository exposes short entrypoints, and full
+protocol references are read only after router, user, or issue scope selects a
+matching profile.
 
 The current plugin manifest does not define a stable field for disabling
 implicit skill triggers. Do not invent one. Until such a host contract exists,
 control is enforced by:
 
-- not importing heavy skills in M2;
 - keeping short skill entrypoints separate from heavy references;
 - requiring the router to recommend escalation before any heavy protocol is
   selected;
@@ -57,5 +58,5 @@ The following are not enough to start heavy protocols:
 
 ## Non-Goals
 
-This policy does not implement routing logic, import heavy skills, create
-runtime hooks, add MCP servers, start watcher threads, or install automations.
+This policy does not implement routing logic, create runtime hooks, add MCP
+servers, start watcher threads, or install automations.

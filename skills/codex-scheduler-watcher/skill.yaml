@@ -7,6 +7,8 @@ requires:
   protocolVersion: "1"
 reads:
   - skills/codex-scheduler-watcher/SOURCE.md
+  - docs/routing/core-skill-profile-selection.md
+  - skills/codex-scheduler-watcher/references/imported-protocol.md
   - skills/codex-scheduler-watcher/references/orchestration-carrier.md
   - skills/codex-scheduler-watcher/references/unit-model.md
   - skills/codex-scheduler-watcher/references/providers.md
