@@ -25,6 +25,8 @@ LoopEngineer is an **agent loop control plane**.
 - [Roadmap](docs/roadmap.md) tracks the milestone order and issue scope.
 - [Architecture decisions](docs/adr/index.md) record repository, plugin, skill,
   and context safety boundaries.
+- [No inline large artifacts policy](docs/context-safety/no-inline-large-artifacts.md)
+  defines which evidence belongs in artifacts instead of thread messages.
 
 ---
 
