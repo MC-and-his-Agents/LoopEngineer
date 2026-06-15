@@ -95,6 +95,10 @@ Core rule:
 No context guard pass, no large message.
 ```
 
+The v1 context budget structure is defined in
+`schemas/v1/context-budget.schema.json`, with default profiles in
+`schemas/v1/context-budget.default.json`.
+
 ### Loop Routing
 
 Not every task needs a scheduler.
