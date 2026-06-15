@@ -24,7 +24,7 @@ MCP and hooks last.
 | M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Add audit and coordination cost controls after core structures exist. |
 | M6 | Optional MCP and hooks | #28, #29, #30, #37 | Add only after context, routing, schemas, and scripts are stable. |
 | Loom integration | External plugin integration | #38, #39, #40, #41 | Define adapter boundaries before any install or register action. |
-| Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit. |
+| Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit; see `docs/releases/v0.1.0.md`. |
 
 ## Current Scope
 
