@@ -259,9 +259,22 @@ Schema 应：
 * 说明变更范围；
 * 说明验证方式；
 * 说明非目标；
+* 说明剩余风险；
 * 遵守上下文安全；
 * 不夹带无关重构；
 * 不把导入和重构混在一起。
+
+PR body 必须包含以下二级标题，供 reviewer 和 CI 消费：
+
+```text
+## Summary
+## Scope
+## Validation
+## Non-goals
+## Risk
+```
+
+单人维护 public 仓库时，主分支保护默认不要求作者自己无法满足的 approval 或 last push approval。必须保留 PR 合并、required status check、conversation resolved、禁止删除、禁止 force push、线性历史和无 bypass。新增 collaborator、涉及安全/权限/发布/共享合同破坏风险，或仓库进入多人维护时，应重新启用独立 review 要求。
 
 最小 CI 只能作为仓库早期主分支保护的可绑定基线，不代表最终质量门禁。
 

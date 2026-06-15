@@ -42,6 +42,7 @@ jobs:
         run: |
           required_files=(
             ".codex-plugin/plugin.json"
+            ".github/pull_request_template.md"
             "AGENTS.md"
             "CHANGELOG.md"
             "LICENSE"
@@ -66,6 +67,37 @@ jobs:
           done
 
           exit "$missing"
+
+      - name: Validate pull request body
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+
+          body = os.environ.get("PR_BODY", "")
+          required_headings = [
+              "Summary",
+              "Scope",
+              "Validation",
+              "Non-goals",
+              "Risk",
+          ]
+
+          missing = [
+              heading
+              for heading in required_headings
+              if not re.search(rf"(?im)^##\s+{re.escape(heading)}\s*$", body)
+          ]
+
+          if missing:
+              print("Pull request body is missing required sections:")
+              for heading in missing:
+                  print(f"- ## {heading}")
+              raise SystemExit(1)
+          PY
 
       - name: Validate Markdown hygiene
         run: |
