@@ -263,6 +263,26 @@ Schema 应：
 * 不夹带无关重构；
 * 不把导入和重构混在一起。
 
+最小 CI 只能作为仓库早期主分支保护的可绑定基线，不代表最终质量门禁。
+
+最小 CI 可以暂时只覆盖：
+
+* 仓库关键文件存在；
+* JSON 可解析；
+* Markdown 基础卫生；
+* 常见本地缓存、日志、临时文件未被提交。
+
+最小 CI 暂时不应伪装成已覆盖：
+
+* 单元测试；
+* lint / format；
+* schema validation；
+* context guard / no-inline policy；
+* release 或版本一致性自动化；
+* 需要新增依赖、lockfile 或工具链选择的检查。
+
+当对应脚本、schema、测试入口或工具配置在后续 issue 中落地后，必须把相关检查升级进 CI，并在 GitHub 主分支 ruleset 中设置为 required status check。不得把“最小 CI”作为长期跳过验证梯度的理由。
+
 推荐 PR 顺序：
 
 1. 文档和 ADR；
