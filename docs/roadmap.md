@@ -9,7 +9,8 @@ Priority order:
 Context safety first.
 Router second.
 Heavy orchestration later.
-MCP and hooks last.
+CLI/JSON engine contract before adapters.
+MCP and host hooks as optional adapters only.
 ```
 
 ## Milestones
@@ -22,7 +23,7 @@ MCP and hooks last.
 | M3 | Protocol profiles and skill refactor | #13, #14, #15, #16, #17, #34 | Import and split core skills with provenance and profile selection. |
 | M4 | Deterministic scripts and structure definitions | #18, #19, #20, #21, #22, #35, #46 | Add schemas, validation, state digest, and report consumption scripts. |
 | M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Completed in `v0.4.0`: audit, coordination cost, watcher inbox, lazy channels, and watcher rotation policy. |
-| M6 | Optional MCP and hooks | #28, #29, #30, #37 | Add only after context, routing, schemas, and scripts are stable. |
+| M6 | Runtime-neutral Loop Engine interface | #28, #82, #30, #29, #81, #37 | Define the CLI/JSON engine contract first; add MCP only as an optional adapter. |
 | Loom integration | External plugin integration | #38, #39, #40, #41 | Define adapter boundaries before any install or register action. |
 | Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit; see `docs/releases/v0.1.0.md`. |
 
@@ -35,7 +36,7 @@ The current baseline establishes:
 - Loom as an optional external integration through an adapter contract;
 - context safety as the first runtime layer;
 - routing as the next layer after context safety;
-- heavy orchestration, MCP, hooks, and Loom adapter actions as later work.
+- heavy orchestration, optional adapters, hooks, and Loom adapter actions as later work.
 
 ## Non-Goals
 
@@ -46,7 +47,7 @@ Current baseline work does not:
 - create watcher, scheduler, or worker threads;
 - replace GitHub, git, CI, review engines, or worktrees;
 - write Loom `.loom/` state;
-- add MCP servers, hooks, apps, or marketplace entries.
+- add MCP servers, lifecycle hooks, apps, or marketplace entries.
 
 ## Issue Closeout
 
