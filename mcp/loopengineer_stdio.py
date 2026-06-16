@@ -266,16 +266,30 @@ def tool_result(payload: dict[str, Any], *, is_error: bool) -> dict[str, Any]:
 
 class McpServer:
     def __init__(self) -> None:
+        self.initialize_accepted = False
         self.initialized = False
 
     def handle(self, message: dict[str, Any]) -> dict[str, Any] | None:
+        has_id = "id" in message
         request_id = message.get("id")
+        if has_id and (request_id is None or isinstance(request_id, bool) or not isinstance(request_id, (str, int))):
+            return error_response(None, -32600, "request id must be a string or number")
+
         method = message.get("method")
+        if not isinstance(method, str):
+            return None if not has_id else error_response(request_id, -32600, "method must be a string")
+
+        if not has_id:
+            return self.handle_notification(method, message.get("params"))
+
         params, error = validate_object(message.get("params"), label="params")
         if error:
             return error_response(request_id, -32602, error)
         if method == "initialize":
-            self.initialized = True
+            error = self.validate_initialize_params(params or {})
+            if error:
+                return error_response(request_id, -32602, error)
+            self.initialize_accepted = True
             return result_response(
                 request_id,
                 {
@@ -289,9 +303,6 @@ class McpServer:
                     },
                 },
             )
-        if method == "notifications/initialized":
-            self.initialized = True
-            return None
         if method == "ping":
             return result_response(request_id, {})
         if method in {"tools/list", "tools/call"} and not self.initialized:
@@ -304,6 +315,36 @@ class McpServer:
         if method == "tools/call":
             return self.handle_tool_call(request_id, params or {})
         return error_response(request_id, -32601, f"unknown method {method}")
+
+    def handle_notification(self, method: str, raw_params: Any) -> None:
+        if method != "notifications/initialized":
+            return None
+        params, error = validate_object(raw_params, label="params")
+        if error:
+            return None
+        if params:
+            return None
+        if self.initialize_accepted:
+            self.initialized = True
+        return None
+
+    def validate_initialize_params(self, params: dict[str, Any]) -> str | None:
+        protocol_version = params.get("protocolVersion")
+        if not isinstance(protocol_version, str) or not protocol_version:
+            return "initialize requires protocolVersion"
+        if protocol_version != PROTOCOL_VERSION:
+            return f"unsupported protocolVersion {protocol_version}"
+        capabilities = params.get("capabilities")
+        if not isinstance(capabilities, dict):
+            return "initialize requires capabilities object"
+        client_info = params.get("clientInfo")
+        if not isinstance(client_info, dict):
+            return "initialize requires clientInfo object"
+        if not isinstance(client_info.get("name"), str) or not client_info.get("name"):
+            return "initialize requires clientInfo.name"
+        if not isinstance(client_info.get("version"), str) or not client_info.get("version"):
+            return "initialize requires clientInfo.version"
+        return None
 
     def handle_tool_call(self, request_id: Any, params: dict[str, Any]) -> dict[str, Any]:
         name = params.get("name")
