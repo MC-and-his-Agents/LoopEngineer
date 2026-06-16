@@ -11,6 +11,8 @@ Current status:
 - `codex-scheduler-watcher` imports the watcher, scheduler lifecycle, scheduler
   pool, and shared lane protocol from MC-SKILLS with provenance recorded in
   `SOURCE.md`;
+- watcher entrypoints read the local watcher inbox and rotation policy before
+  loading full watcher automation references;
 - heavy skill entries stay short; full protocols and rare paths live in
   `references/` and are read only after profile selection.
 
