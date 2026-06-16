@@ -78,6 +78,9 @@ jobs:
 
           exit "$missing"
 
+      - name: Validate LoopEngineer structure examples
+        run: python3 scripts/validate_structures.py
+
       - name: Validate pull request body
         if: github.event_name == 'pull_request'
         env:
