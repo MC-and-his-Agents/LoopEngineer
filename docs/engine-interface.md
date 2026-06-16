@@ -26,6 +26,10 @@ MCP is an optional adapter over the engine contract. Host hook examples, if
 added, are admission reminder examples over the engine contract. Neither is the
 core product surface.
 
+The optional MCP adapter is a host-facing stdio JSON-RPC adapter. It exposes
+tools only, calls `python3 scripts/loopengineer.py`, and does not implement
+LoopEngineer judgment logic itself.
+
 ## First Contract Surface
 
 The first engine contract exposes these capabilities:
@@ -106,6 +110,23 @@ M6 must not expose capabilities that:
 - create workers, schedulers, watchers, threads, or automations;
 - run gates, merge, release, or closeout lifecycle transitions;
 - consume reports or write receipts without a later explicit local write policy.
+
+## Optional MCP Adapter
+
+The first MCP adapter maps only these tools to engine commands:
+
+| MCP tool | Engine command |
+| --- | --- |
+| `loopengineer.context_guard` | `context-guard` |
+| `loopengineer.validate_structures` | `validate-structures` |
+| `loopengineer.state_digest` | `state-digest` |
+| `loopengineer.loop_audit` | `loop-audit` |
+| `loopengineer.coordination_tax` | `coordination-tax` |
+| `loopengineer.preflight` | `preflight` |
+
+It must not expose `consume_report`, release readiness, GitHub, git, CI, PR,
+merge, gate, worker, scheduler, watcher, automation, or `.loom` mutation
+capabilities.
 
 ## Compatibility
 
