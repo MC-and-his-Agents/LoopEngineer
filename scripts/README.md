@@ -10,6 +10,8 @@ Current status:
   tags, releases, packages, or other external artifacts;
 - `consume_report.py` validates a report artifact, writes a consumption receipt,
   and emits a compact scheduler/watcher summary;
+- `coordination_tax.py` estimates coordination cost and recommends the lightest
+  sufficient routing profile without changing external state;
 - `context_guard.py` checks text against a v1 context budget profile;
 - `prepare_manual_release.py` prepares the fail-closed manual tag and GitHub
   Release plan used by the workflow dispatch release workflow;
