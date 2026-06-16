@@ -79,10 +79,32 @@ def yes_no_auto(value: str, auto_value: bool) -> bool:
     return auto_value
 
 
-def release_notes(version: str, commit: str, readiness: dict[str, Any]) -> str:
+def read_metadata(root: Path) -> dict[str, Any]:
+    try:
+        data = json.loads((root / "metadata/loopengineer.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - readiness already gates metadata; notes can degrade.
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def compatibility_lines(metadata: dict[str, Any], readiness: dict[str, Any]) -> str:
+    fields = [
+        ("productVersion", readiness.get("checkedVersion")),
+        ("pluginApiVersion", metadata.get("pluginApiVersion")),
+        ("protocolVersion", metadata.get("protocolVersion")),
+        ("engineContractVersion", metadata.get("engineContractVersion")),
+        ("schemaMajorVersion", metadata.get("schemaMajorVersion")),
+        ("skillContractVersion", metadata.get("skillContractVersion")),
+        ("adapterContractVersion", metadata.get("adapterContractVersion")),
+    ]
+    return "\n".join(f"- {field}: {value}" for field, value in fields)
+
+
+def release_notes(root: Path, version: str, commit: str, readiness: dict[str, Any]) -> str:
     checks = "\n".join(
         f"- {item['name']}: {item['status']}" for item in readiness.get("checks", [])
     )
+    compatibility = compatibility_lines(read_metadata(root), readiness)
     return f"""## Summary
 
 Manual GitHub Release for {version}.
@@ -100,7 +122,7 @@ Manual GitHub Release for {version}.
 
 ## Compatibility
 
-- productVersion: {readiness.get("checkedVersion")}
+{compatibility}
 
 ## Known Limitations
 
@@ -229,7 +251,7 @@ def build_plan(
     if release_notes_file is not None and status == "pass" and target_commit is not None:
         release_notes_file.parent.mkdir(parents=True, exist_ok=True)
         release_notes_file.write_text(
-            release_notes(release_version, target_commit, readiness),
+            release_notes(root, release_version, target_commit, readiness),
             encoding="utf-8",
         )
         evidence["releaseNotesPath"] = str(release_notes_file)
