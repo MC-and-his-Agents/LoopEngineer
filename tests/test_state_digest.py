@@ -56,6 +56,8 @@ class StateDigestTest(unittest.TestCase):
             "schemas/v1/examples/waiting-queue.valid.json",
             "--input-file",
             "schemas/v1/examples/watcher-decision.valid.json",
+            "--input-file",
+            "schemas/v1/examples/watcher-inbox.valid.json",
         )
 
         self.assertEqual(code, 0)
@@ -65,6 +67,8 @@ class StateDigestTest(unittest.TestCase):
         self.assertEqual(by_kind["loopengineer.channelState"]["waitingCount"], 1)
         self.assertEqual(by_kind["loopengineer.waitingQueue"]["waitingCount"], 1)
         self.assertEqual(by_kind["loopengineer.watcherDecision"]["inputCount"], 2)
+        self.assertEqual(by_kind["loopengineer.watcherInbox"]["summary"]["unconsumed_report_count"], 1)
+        self.assertEqual(len(by_kind["loopengineer.watcherInbox"]["requiredNextActions"]), 1)
 
     def test_full_digest_can_summarize_report_inbox(self):
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:

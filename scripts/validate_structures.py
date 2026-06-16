@@ -81,6 +81,15 @@ DECISION_TYPES = {
     "release_channel",
     "noop",
 }
+WATCHER_INBOX_SUMMARY_FIELDS = {
+    "unconsumed_report_count",
+    "unconsumed_channel_event_count",
+    "unacked_instruction_count",
+    "stale_heartbeat_count",
+    "stale_channel_owner_count",
+    "candidate_unit_count",
+    "required_next_action_count",
+}
 
 
 def emit(payload: dict[str, Any]) -> None:
@@ -325,6 +334,70 @@ def validate_watcher_decision(root: Path, path: Path, data: dict[str, Any]) -> l
     return errors
 
 
+def validate_watcher_inbox(root: Path, path: Path, data: dict[str, Any]) -> list[dict[str, str]]:
+    file = rel(root, path)
+    errors = common(root, path, data, "loopengineer.watcherInbox")
+    errors.extend(
+        require_fields(
+            data,
+            {
+                "inbox_id",
+                "version",
+                "watcher_id",
+                "generated_at",
+                "state_root",
+                "sources",
+                "summary",
+                "unconsumed_scheduler_reports",
+                "unconsumed_channel_events",
+                "unacked_scheduler_instructions",
+                "stale_heartbeat_targets",
+                "stale_channel_owners",
+                "candidate_units",
+                "required_next_actions",
+                "next_action",
+            },
+            file,
+            "watcher_inbox",
+        )
+    )
+    if not isinstance(data.get("inbox_id"), str) or not data.get("inbox_id", "").startswith("watcher-inbox-"):
+        errors.append(failure(file, "inbox_id", "inbox_id must start with watcher-inbox-", "use a watcher-inbox-* id"))
+    if not data.get("sources"):
+        errors.append(failure(file, "sources", "sources must be non-empty", "cite inbox source locators"))
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        errors.append(failure(file, "summary", "summary must be an object", "add watcher inbox summary counts"))
+    else:
+        errors.extend(require_fields(summary, WATCHER_INBOX_SUMMARY_FIELDS, file, "summary"))
+        for field in sorted(WATCHER_INBOX_SUMMARY_FIELDS):
+            value = summary.get(field)
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                errors.append(failure(file, f"summary.{field}", "summary count must be a non-negative integer", "set count to zero or greater"))
+    for report in data.get("unconsumed_scheduler_reports", []):
+        errors.extend(require_fields(report, {"report_id", "scheduler_id", "report_path", "report_type", "created_at"}, file, "unconsumed scheduler report"))
+        errors.extend(require_enum(file, "unconsumed_scheduler_reports.report_type", report.get("report_type"), REPORT_TYPES, "report_type"))
+    for event in data.get("unconsumed_channel_events", []):
+        errors.extend(require_fields(event, {"event_id", "event_type", "channel_id", "event_path", "created_at"}, file, "unconsumed channel event"))
+        errors.extend(require_enum(file, "unconsumed_channel_events.event_type", event.get("event_type"), EVENT_TYPES, "event_type"))
+    for instruction in data.get("unacked_scheduler_instructions", []):
+        errors.extend(require_fields(instruction, {"instruction_id", "scheduler_id", "sent_at", "expected_report_type", "next_readback_at"}, file, "unacked scheduler instruction"))
+        errors.extend(require_enum(file, "unacked_scheduler_instructions.expected_report_type", instruction.get("expected_report_type"), REPORT_TYPES, "expected_report_type"))
+    for heartbeat in data.get("stale_heartbeat_targets", []):
+        errors.extend(require_fields(heartbeat, {"scheduler_id", "expected_thread_id", "observed_thread_id", "last_checked_at"}, file, "stale heartbeat target"))
+    for owner in data.get("stale_channel_owners", []):
+        errors.extend(require_fields(owner, {"channel_id", "owner_scheduler_id", "stale_reason", "next_readback_at"}, file, "stale channel owner"))
+    for unit in data.get("candidate_units", []):
+        errors.extend(require_fields(unit, {"unit_id", "readiness", "source"}, file, "candidate unit"))
+        errors.extend(require_enum(file, "candidate_units.readiness", unit.get("readiness"), {"ready", "blocked", "needs_readback"}, "candidate readiness"))
+    for action in data.get("required_next_actions", []):
+        errors.extend(require_fields(action, {"owner", "action", "source"}, file, "required next action"))
+        errors.extend(require_enum(file, "required_next_actions.owner", action.get("owner"), NEXT_ACTION_OWNERS, "required next action owner"))
+    errors.extend(validate_version(root, path, data.get("version")))
+    errors.extend(validate_next_action(root, path, data.get("next_action")))
+    return errors
+
+
 VALIDATORS: dict[str, Callable[[Path, Path, dict[str, Any]], list[dict[str, str]]]] = {
     "loopengineer.contextBudget": validate_context_budget,
     "loopengineer.handoffManifest": validate_handoff_manifest,
@@ -335,6 +408,7 @@ VALIDATORS: dict[str, Callable[[Path, Path, dict[str, Any]], list[dict[str, str]
     "loopengineer.waitingQueue": validate_waiting_queue,
     "loopengineer.channelEvent": validate_channel_event,
     "loopengineer.watcherDecision": validate_watcher_decision,
+    "loopengineer.watcherInbox": validate_watcher_inbox,
 }
 
 

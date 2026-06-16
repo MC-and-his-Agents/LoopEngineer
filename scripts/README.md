@@ -15,6 +15,8 @@ Current status:
   Release plan used by the workflow dispatch release workflow;
 - `state_digest.py` builds compact state summaries for heartbeat and handoff prompts;
 - `validate_structures.py` checks LoopEngineer structure files and examples;
+- future watcher inbox tooling should keep watcher wakeups summary-first and
+  locator-backed;
 - scripts must output machine-readable results and fail closed when added;
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
 
