@@ -26,7 +26,7 @@ LoopEngineer 是一个 **agent loop control plane**。
 - [架构决策](docs/adr/index.md) 记录仓库、插件、技能和上下文安全边界。
 - [禁止内联大型工件策略](docs/context-safety/no-inline-large-artifacts.md)
   定义哪些证据应进入工件，而不是线程消息。
-- [v0.4.0 手动发布计划](docs/releases/v0.4.0.md) 记录 M5 发布检查清单和发布输入。
+- [v0.5.0 手动发布计划](docs/releases/v0.5.0.md) 记录 M6 发布检查清单和发布输入。
 - [v0.1.0 手动发布计划](docs/releases/v0.1.0.md) 记录第一个发布检查清单和 tag 规则。
 
 ---
