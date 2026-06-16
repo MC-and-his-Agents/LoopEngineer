@@ -52,6 +52,34 @@ class ValidateStructuresTest(unittest.TestCase):
         self.assertEqual(failure["field"], "next_action")
         self.assertIn("suggestedAction", failure)
 
+    def test_invalid_report_enum_fails(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as handle:
+            report = json.loads((ROOT / "schemas/v1/examples/report.valid.json").read_text(encoding="utf-8"))
+            report["report_type"] = "not-a-report-type"
+            json.dump(report, handle)
+            handle.flush()
+
+            code, payload, stderr = run_validator("--input-file", handle.name)
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 1)
+        fields = [item["field"] for item in payload["failures"]]
+        self.assertIn("report_type", fields)
+
+    def test_invalid_type_fails_with_json_payload(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as handle:
+            budget = json.loads((ROOT / "schemas/v1/context-budget.default.json").read_text(encoding="utf-8"))
+            budget["estimation"]["charsPerToken"] = "four"
+            json.dump(budget, handle)
+            handle.flush()
+
+            code, payload, stderr = run_validator("--input-file", handle.name)
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 1)
+        fields = [item["field"] for item in payload["failures"]]
+        self.assertIn("estimation.charsPerToken", fields)
+
     def test_invalid_waiting_queue_fails(self):
         code, payload, _ = run_validator(
             "--input-file",
