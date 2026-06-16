@@ -43,7 +43,7 @@ def git_output(root: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
-def gh_release_exists(root: Path, tag: str) -> bool:
+def gh_release_probe(root: Path, tag: str) -> tuple[bool | None, str | None]:
     completed = subprocess.run(
         ["gh", "release", "view", tag, "--json", "url"],
         cwd=root,
@@ -51,7 +51,13 @@ def gh_release_exists(root: Path, tag: str) -> bool:
         text=True,
         capture_output=True,
     )
-    return completed.returncode == 0
+    if completed.returncode == 0:
+        return True, None
+    output = f"{completed.stdout}\n{completed.stderr}".lower()
+    if "not found" in output or "404" in output:
+        return False, None
+    message = completed.stderr.strip() or completed.stdout.strip() or f"gh exited with {completed.returncode}"
+    return None, message
 
 
 def auto_tag_exists(root: Path, tag: str) -> bool:
@@ -178,7 +184,21 @@ def build_plan(
         )
 
     existing_tag = yes_no_auto(tag_exists, auto_tag_exists(root, release_version))
-    existing_release = yes_no_auto(release_exists, gh_release_exists(root, release_version))
+    if release_exists == "auto":
+        probed_release, probe_error = gh_release_probe(root, release_version)
+        existing_release = bool(probed_release)
+        if probe_error is not None:
+            failures.append(
+                failure(
+                    "release_exists",
+                    "gh release view",
+                    "release_exists",
+                    f"cannot determine whether release exists: {probe_error}",
+                    "retry after GitHub CLI authentication and API access are available",
+                )
+            )
+    else:
+        existing_release = yes_no_auto(release_exists, False)
     conclusion = "ready"
     status = "pass"
     plan = "create"

@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -11,13 +12,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/prepare_manual_release.py"
 
 
-def run_prepare(root: Path, *args: str):
+def run_prepare(root: Path, *args: str, env: dict[str, str] | None = None):
+    command_env = os.environ.copy()
+    if env is not None:
+        command_env.update(env)
     completed = subprocess.run(
         [sys.executable, str(SCRIPT), "--root", str(root), *args],
         cwd=ROOT,
         check=False,
         text=True,
         capture_output=True,
+        env=command_env,
     )
     payload = json.loads(completed.stdout)
     return completed.returncode, payload, completed.stderr
@@ -150,6 +155,40 @@ class PrepareManualReleaseTest(unittest.TestCase):
         self.assertEqual(payload["status"], "noop")
         self.assertEqual(payload["plan"], "none")
         self.assertTrue(payload["existingRelease"])
+
+    def test_release_probe_error_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            copy_minimal_repo(root)
+            fake_bin = Path(tmp) / "bin"
+            fake_bin.mkdir()
+            fake_gh = fake_bin / "gh"
+            fake_gh.write_text("#!/bin/sh\necho authentication required >&2\nexit 1\n", encoding="utf-8")
+            fake_gh.chmod(0o755)
+            code, payload, stderr = run_prepare(
+                root,
+                "--release-version",
+                "v0.1.0",
+                "--target-commit",
+                "abc1234",
+                "--main-commit",
+                "abc1234",
+                "--tag-exists",
+                "no",
+                "--release-exists",
+                "auto",
+                "--skip-tests",
+                env={"PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}"},
+            )
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["status"], "fail")
+        self.assertEqual(payload["plan"], "none")
+        self.assertFalse(payload["existingRelease"])
+        checks = [item["check"] for item in payload["failures"]]
+        self.assertIn("release_exists", checks)
 
     def test_target_commit_mismatch_fails_without_explicit_target(self):
         with tempfile.TemporaryDirectory() as tmp:
