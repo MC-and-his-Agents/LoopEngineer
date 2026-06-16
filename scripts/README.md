@@ -13,6 +13,8 @@ Current status:
 - `coordination_tax.py` estimates coordination cost and recommends the lightest
   sufficient routing profile without changing external state;
 - `context_guard.py` checks text against a v1 context budget profile;
+- `loop_audit.py` audits LoopEngineer state for unconsumed reports, missing ACKs,
+  stale targets, waiting recovery gaps, and channel release evidence gaps;
 - `prepare_manual_release.py` prepares the fail-closed manual tag and GitHub
   Release plan used by the workflow dispatch release workflow;
 - `state_digest.py` builds compact state summaries for heartbeat and handoff prompts;

@@ -5,6 +5,7 @@ This directory is the future home for LoopEngineer skill entrypoints.
 Current status:
 
 - `codex-loop-router` provides the lightweight routing entrypoint;
+- `codex-loop-audit` provides the deterministic loop audit entrypoint;
 - `codex-context-safety` provides the lightweight context safety entrypoint;
 - `codex-thread-orchestration` imports the scheduler/worker coordination
   protocol from MC-SKILLS with provenance recorded in `SOURCE.md`;
