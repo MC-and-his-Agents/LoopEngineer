@@ -15,6 +15,9 @@ Current status:
 - `context_guard.py` checks text against a v1 context budget profile;
 - `loop_audit.py` audits LoopEngineer state for unconsumed reports, missing ACKs,
   stale targets, waiting recovery gaps, and channel release evidence gaps;
+- `loopengineer.py` is the runtime-neutral CLI/JSON engine entrypoint; it wraps
+  read-only, diagnostic, validation, and admission reminder capabilities in a
+  stable JSON envelope;
 - `prepare_manual_release.py` prepares the fail-closed manual tag and GitHub
   Release plan used by the workflow dispatch release workflow;
 - `state_digest.py` builds compact state summaries for heartbeat and handoff prompts;
@@ -24,4 +27,4 @@ Current status:
 - scripts must output machine-readable results and fail closed when added;
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
 
-Related issues include #6, #20, #21, #22, #23, #27, #46, #64, and #65.
+Related issues include #6, #20, #21, #22, #23, #27, #46, #64, #65, #82, and #30.

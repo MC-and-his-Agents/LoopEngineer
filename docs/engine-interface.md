@@ -37,6 +37,37 @@ The first engine contract exposes these capabilities:
 - `coordination_tax`
 - `preflight` or `admission_reminder`
 
+The canonical entrypoint is:
+
+```text
+python3 scripts/loopengineer.py <command>
+```
+
+The first command set is:
+
+```text
+context-guard
+validate-structures
+state-digest
+loop-audit
+coordination-tax
+preflight
+```
+
+Each command emits a JSON object with:
+
+- `status`
+- `capability`
+- `summary`
+- `result`
+- `failures`
+
+Exit code meanings are stable for engine callers:
+
+- `0`: `status` is `pass`;
+- `1`: `status` is `fail`;
+- `2`: `status` is `error`.
+
 `consume_report` is not part of the first engine contract. It writes a
 consumption receipt and is a `local-artifact-write` capability. It can only be
 added later through an explicit gated local write policy.
