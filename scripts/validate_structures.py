@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 from typing import Any, Callable
 
@@ -19,7 +20,67 @@ VERSION_FIELDS = {
     "skillContractVersion",
 }
 NEXT_ACTION_FIELDS = {"owner", "action", "status"}
+NEXT_ACTION_OWNERS = {"worker", "scheduler", "watcher", "user", "external"}
 NEXT_ACTION_STATUSES = {"required", "blocked", "waiting", "none"}
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+REPORT_ID_RE = re.compile(r"^report-[A-Za-z0-9._-]+$")
+REPORT_TYPES = {
+    "instruction_ack",
+    "startup_report",
+    "progress_update",
+    "blocker_update",
+    "completion_result",
+    "gate_wait",
+    "routing_missing",
+    "correction_result",
+}
+ROLES = {"worker", "scheduler", "watcher"}
+DISPATCH_STATUSES = {
+    "instruction-sent-awaiting-ack",
+    "confirming",
+    "active",
+    "waiting-report",
+    "waiting-scheduler-gate",
+    "blocked",
+    "completed",
+    "failed",
+    "replacement-planned",
+}
+SCHEDULER_STATUSES = {
+    "planned",
+    "active",
+    "blocked",
+    "waiting-gate",
+    "completed",
+    "retired",
+    "systemError-retired",
+}
+CHANNEL_TYPES = {
+    "shared_fact_chain_status",
+    "shadow_carrier",
+    "current_item_review",
+    "high_cost_gate",
+    "merge",
+    "contract",
+}
+CHANNEL_STATES = {
+    "channel-free",
+    "channel-granted",
+    "channel-release-pending",
+    "channel-blocked",
+    "channel-stale-owner",
+    "channel-released",
+}
+EVENT_TYPES = {"request", "grant", "wait", "deny", "release"}
+DECISION_TYPES = {
+    "grant_channel",
+    "deny_channel",
+    "wait",
+    "readback",
+    "recover_scheduler",
+    "release_channel",
+    "noop",
+}
 
 
 def emit(payload: dict[str, Any]) -> None:
@@ -50,6 +111,13 @@ def require_fields(data: dict[str, Any], fields: set[str], file: str, label: str
     ]
 
 
+def require_enum(file: str, field: str, value: Any, allowed: set[str], label: str) -> list[dict[str, str]]:
+    if value in allowed:
+        return []
+    allowed_values = ", ".join(sorted(allowed))
+    return [failure(file, field, f"{label} is invalid", f"use one of: {allowed_values}")]
+
+
 def load_json(root: Path, path: Path) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     file = rel(root, path)
     try:
@@ -66,6 +134,12 @@ def validate_version(root: Path, path: Path, data: Any) -> list[dict[str, str]]:
     if not isinstance(data, dict):
         return [failure(file, "version", "version must be an object", "add version metadata")]
     errors = require_fields(data, VERSION_FIELDS, file, "version")
+    product_version = data.get("productVersion")
+    if not isinstance(product_version, str) or not SEMVER_RE.match(product_version):
+        errors.append(failure(file, "version.productVersion", "productVersion must be SemVer", "set productVersion to MAJOR.MINOR.PATCH"))
+    for field in ("protocolVersion", "skillContractVersion"):
+        if not isinstance(data.get(field), str) or not data.get(field):
+            errors.append(failure(file, f"version.{field}", f"{field} must be a non-empty string", f"set version.{field}"))
     if data.get("schemaVersion") != "1.0":
         errors.append(failure(file, "version.schemaVersion", "schemaVersion must be 1.0", "set schemaVersion to 1.0"))
     return errors
@@ -76,6 +150,9 @@ def validate_next_action(root: Path, path: Path, data: Any) -> list[dict[str, st
     if not isinstance(data, dict):
         return [failure(file, "next_action", "next_action must be an object", "add next_action")]
     errors = require_fields(data, NEXT_ACTION_FIELDS, file, "next_action")
+    errors.extend(require_enum(file, "next_action.owner", data.get("owner"), NEXT_ACTION_OWNERS, "owner"))
+    if not isinstance(data.get("action"), str) or not data.get("action"):
+        errors.append(failure(file, "next_action.action", "action must be a non-empty string", "set next_action.action"))
     if data.get("status") not in NEXT_ACTION_STATUSES:
         errors.append(failure(file, "next_action.status", "status is invalid", "use required, blocked, waiting, or none"))
     return errors
@@ -98,8 +175,10 @@ def validate_context_budget(root: Path, path: Path, data: dict[str, Any]) -> lis
     profiles = data.get("profiles")
     if not isinstance(estimation, dict):
         errors.append(failure(file, "estimation", "estimation must be an object", "add estimation settings"))
-    elif estimation.get("charsPerToken", 0) < 1:
-        errors.append(failure(file, "estimation.charsPerToken", "must be positive", "set charsPerToken above zero"))
+    else:
+        chars_per_token = estimation.get("charsPerToken")
+        if not isinstance(chars_per_token, (int, float)) or isinstance(chars_per_token, bool) or chars_per_token < 1:
+            errors.append(failure(file, "estimation.charsPerToken", "must be a positive number", "set charsPerToken above zero"))
     if not isinstance(profiles, dict) or not profiles:
         errors.append(failure(file, "profiles", "profiles must be a non-empty object", "add context budget profiles"))
     else:
@@ -143,8 +222,17 @@ def validate_report(root: Path, path: Path, data: dict[str, Any]) -> list[dict[s
     file = rel(root, path)
     errors = common(root, path, data, "loopengineer.report")
     errors.extend(require_fields(data, {"report_id", "report_type", "role", "status", "version", "producer", "created_at", "summary", "next_action"}, file, "report"))
-    if not str(data.get("report_id", "")).startswith("report-"):
-        errors.append(failure(file, "report_id", "must start with report-", "use a report-* id"))
+    if not isinstance(data.get("report_id"), str) or not REPORT_ID_RE.match(data["report_id"]):
+        errors.append(failure(file, "report_id", "must match report id pattern", "use a report-[A-Za-z0-9._-]+ id"))
+    errors.extend(require_enum(file, "report_type", data.get("report_type"), REPORT_TYPES, "report_type"))
+    errors.extend(require_enum(file, "role", data.get("role"), ROLES, "role"))
+    errors.extend(require_enum(file, "status", data.get("status"), {"acknowledged", "running", "blocked", "waiting", "completed", "failed"}, "status"))
+    producer = data.get("producer")
+    if not isinstance(producer, dict):
+        errors.append(failure(file, "producer", "producer must be an object", "add producer metadata"))
+    else:
+        errors.extend(require_fields(producer, {"id", "role"}, file, "producer"))
+        errors.extend(require_enum(file, "producer.role", producer.get("role"), ROLES, "producer role"))
     errors.extend(validate_version(root, path, data.get("version")))
     errors.extend(validate_next_action(root, path, data.get("next_action")))
     return errors
@@ -159,6 +247,8 @@ def validate_dispatch_table(root: Path, path: Path, data: dict[str, Any]) -> lis
     for entry in data.get("entries", []):
         errors.extend(require_fields(entry, {"instruction_id", "unit_id", "status", "expected_report_type", "report_output_path", "report_to_thread_id", "assigned_scope", "next_action"}, file, "dispatch entry"))
         ids.append(entry.get("instruction_id"))
+        errors.extend(require_enum(file, "entries.status", entry.get("status"), DISPATCH_STATUSES, "dispatch entry status"))
+        errors.extend(require_enum(file, "entries.expected_report_type", entry.get("expected_report_type"), REPORT_TYPES, "expected_report_type"))
         errors.extend(validate_next_action(root, path, entry.get("next_action")))
     if len(ids) != len(set(ids)):
         errors.append(failure(file, "entries.instruction_id", "instruction_id values must be unique", "deduplicate dispatch entries"))
@@ -175,6 +265,7 @@ def validate_scheduler_pool(root: Path, path: Path, data: dict[str, Any]) -> lis
     for scheduler in data.get("schedulers", []):
         errors.extend(require_fields(scheduler, {"scheduler_id", "unit_id", "status", "report_inbox", "next_action"}, file, "scheduler"))
         ids.append(scheduler.get("scheduler_id"))
+        errors.extend(require_enum(file, "schedulers.status", scheduler.get("status"), SCHEDULER_STATUSES, "scheduler status"))
         errors.extend(validate_next_action(root, path, scheduler.get("next_action")))
     if len(ids) != len(set(ids)):
         errors.append(failure(file, "schedulers.scheduler_id", "scheduler_id values must be unique", "deduplicate schedulers"))
@@ -186,6 +277,8 @@ def validate_channel_state(root: Path, path: Path, data: dict[str, Any]) -> list
     file = rel(root, path)
     errors = common(root, path, data, "loopengineer.channelState")
     errors.extend(require_fields(data, {"channel_id", "channel_type", "state", "version", "updated_at", "release_predicate", "waiting_scheduler_ids", "next_action"}, file, "channel_state"))
+    errors.extend(require_enum(file, "channel_type", data.get("channel_type"), CHANNEL_TYPES, "channel_type"))
+    errors.extend(require_enum(file, "state", data.get("state"), CHANNEL_STATES, "channel state"))
     errors.extend(validate_version(root, path, data.get("version")))
     errors.extend(validate_next_action(root, path, data.get("next_action")))
     return errors
@@ -214,6 +307,7 @@ def validate_channel_event(root: Path, path: Path, data: dict[str, Any]) -> list
     file = rel(root, path)
     errors = common(root, path, data, "loopengineer.channelEvent")
     errors.extend(require_fields(data, {"event_id", "event_type", "version", "channel_id", "scheduler_id", "unit_id", "created_at", "next_action"}, file, "channel_event"))
+    errors.extend(require_enum(file, "event_type", data.get("event_type"), EVENT_TYPES, "event_type"))
     errors.extend(validate_version(root, path, data.get("version")))
     errors.extend(validate_next_action(root, path, data.get("next_action")))
     return errors
@@ -223,6 +317,7 @@ def validate_watcher_decision(root: Path, path: Path, data: dict[str, Any]) -> l
     file = rel(root, path)
     errors = common(root, path, data, "loopengineer.watcherDecision")
     errors.extend(require_fields(data, {"decision_id", "decision_type", "version", "watcher_id", "created_at", "inputs", "rationale", "next_action"}, file, "watcher_decision"))
+    errors.extend(require_enum(file, "decision_type", data.get("decision_type"), DECISION_TYPES, "decision_type"))
     if not data.get("inputs"):
         errors.append(failure(file, "inputs", "inputs must be non-empty", "cite consumed input locators"))
     errors.extend(validate_version(root, path, data.get("version")))
@@ -285,7 +380,17 @@ def main(argv: list[str] | None = None) -> int:
     paths = [path if path.is_absolute() else root / path for path in paths]
     failures: list[dict[str, str]] = []
     for path in paths:
-        failures.extend(validate_file(root, path))
+        try:
+            failures.extend(validate_file(root, path))
+        except Exception as exc:  # noqa: BLE001 - CLI must fail closed with JSON.
+            failures.append(
+                failure(
+                    rel(root, path),
+                    "validation",
+                    f"validator failed: {exc}",
+                    "fix the structure shape or validator rule so validation can complete",
+                )
+            )
     payload = {
         "status": "pass" if not failures else "fail",
         "checkedFiles": [rel(root, path) for path in paths],
