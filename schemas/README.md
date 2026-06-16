@@ -6,6 +6,8 @@ Current status:
 
 - v1 context budget schema and default budget live under `schemas/v1/`;
 - v1 report, dispatch table, and scheduler pool schemas live under `schemas/v1/`;
+- v1 channel state, waiting queue, channel event, and watcher decision schemas live
+  under `schemas/v1/`;
 - future schemas should live under major-versioned directories such as `schemas/v1/`;
 - schema examples and invalid examples should land with the schema that requires them.
 
