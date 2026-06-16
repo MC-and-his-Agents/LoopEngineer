@@ -91,6 +91,30 @@ class ConsumeReportTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(payload["failures"][0]["field"], "kind")
 
+    def test_unsafe_report_id_fails_before_writing_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = Path(tmp) / "report.valid.json"
+            data = json.loads(VALID_REPORT.read_text(encoding="utf-8"))
+            data["report_id"] = "report-bad/id"
+            report.write_text(json.dumps(data), encoding="utf-8")
+            output_dir = Path(tmp) / "consumption"
+            code, payload, stderr = run_consume(
+                "--report-file",
+                str(report),
+                "--output-dir",
+                str(output_dir),
+                "--consumed-by",
+                "scheduler-18",
+            )
+
+            receipts = list(output_dir.rglob("*.json")) if output_dir.exists() else []
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["status"], "fail")
+        self.assertEqual(payload["failures"][0]["field"], "report_id")
+        self.assertEqual(receipts, [])
+
     def test_duplicate_receipt_fails_without_force(self):
         with tempfile.TemporaryDirectory() as tmp:
             report = Path(tmp) / "report.valid.json"

@@ -7,6 +7,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 import sys
 from typing import Any
 
@@ -14,6 +15,7 @@ import validate_structures
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPORT_ID_RE = re.compile(r"^report-[A-Za-z0-9._-]+$")
 
 
 def emit(payload: dict[str, Any]) -> None:
@@ -92,9 +94,19 @@ def consume_report(
                 failure(file, "kind", "input must be loopengineer.report", "pass a report artifact")
             ],
         }
+    report_id = report.get("report_id")
+    if not isinstance(report_id, str) or not REPORT_ID_RE.match(report_id):
+        return {
+            "status": "fail",
+            "receiptPath": None,
+            "summary": None,
+            "failures": [
+                failure(file, "report_id", "report_id is not safe for receipt filename", "use a report-[A-Za-z0-9._-]+ id")
+            ],
+        }
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    receipt_path = output_dir / f"{report['report_id']}-consumed.json"
+    receipt_path = output_dir / f"{report_id}-consumed.json"
     if receipt_path.exists() and not force:
         return {
             "status": "fail",
