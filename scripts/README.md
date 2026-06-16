@@ -28,3 +28,8 @@ Current status:
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
 
 Related issues include #6, #20, #21, #22, #23, #27, #46, #64, #65, #82, and #30.
+
+Optional MCP adapter:
+
+- `../mcp/loopengineer_stdio.py` exposes only the read-only, diagnostic,
+  validation, and preflight engine capabilities over stdio JSON-RPC.
