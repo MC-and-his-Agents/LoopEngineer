@@ -53,6 +53,19 @@ Engine capabilities are classified before any adapter exposes them:
 | `local-artifact-write` | Writes local receipts, reports, or generated files. | Denied by default. |
 | `host-mutation` | Changes GitHub, git, CI, PRs, releases, automations, host state, or `.loom/`. | Denied. |
 
+## Adapter Approval Assumptions
+
+Any future adapter exposure of a `local-artifact-write` capability, including
+`consume_report`, requires a separate approval policy. That policy must assume:
+
+- the user or owning runtime explicitly opts in before the tool is exposed;
+- writes are limited to an approved local artifact path or output directory;
+- the tool cannot mutate GitHub, git, CI, PRs, releases, host state, or
+  Loom-owned `.loom/` facts;
+- invalid input, missing approval, or path ambiguity fails closed;
+- adapter code enforces the same policy instead of relying only on caller
+  discipline.
+
 ## First Denylist
 
 M6 must not expose capabilities that:
