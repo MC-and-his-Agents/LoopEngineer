@@ -1,0 +1,135 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Release tag to create, for example v0.1.0
+        required: true
+        type: string
+      release_commit:
+        description: Optional explicit commit SHA. Empty means the selected workflow ref.
+        required: false
+        type: string
+      allow_explicit_commit:
+        description: Allow release_commit to differ from origin/main.
+        required: true
+        default: false
+        type: boolean
+      draft_release:
+        description: Create the GitHub Release as draft.
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: manual-release-${{ inputs.release_version }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: manual release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release target
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit != '' && inputs.release_commit || github.ref }}
+
+      - name: Fetch main and tags
+        run: git fetch --tags origin main
+
+      - name: Prepare release plan
+        id: prepare
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          ALLOW_EXPLICIT_COMMIT: ${{ inputs.allow_explicit_commit }}
+        run: |
+          set -uo pipefail
+          args=(
+            --release-version "$RELEASE_VERSION"
+            --target-commit "$(git rev-parse HEAD)"
+            --main-commit "$(git rev-parse origin/main)"
+            --release-notes-file release-notes.md
+          )
+          if [[ "$ALLOW_EXPLICIT_COMMIT" == "true" ]]; then
+            args+=(--explicit-target)
+          fi
+          set +e
+          python3 scripts/prepare_manual_release.py "${args[@]}" > release-evidence.json
+          exit_code=$?
+          set -e
+          python3 - <<'PY'
+          import json
+          import os
+          data = json.loads(open("release-evidence.json", encoding="utf-8").read())
+          data["workflowRun"] = {
+              "runId": os.environ["GITHUB_RUN_ID"],
+              "url": f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }
+          with open("release-evidence.json", "w", encoding="utf-8") as handle:
+              json.dump(data, handle, ensure_ascii=False, indent=2, sort_keys=True)
+              handle.write("\n")
+          PY
+          cat release-evidence.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data = json.loads(open("release-evidence.json", encoding="utf-8").read())
+          print(f"status={data['status']}")
+          print(f"plan={data['plan']}")
+          print(f"tag={data['tag']}")
+          print(f"target_commit={data['targetCommit']}")
+          PY
+          exit "$exit_code"
+
+      - name: Create tag
+        if: steps.prepare.outputs.plan == 'create'
+        run: |
+          git tag "${{ steps.prepare.outputs.tag }}" "${{ steps.prepare.outputs.target_commit }}"
+          git push origin "${{ steps.prepare.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.prepare.outputs.plan == 'create'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAFT_RELEASE: ${{ inputs.draft_release }}
+        run: |
+          args=(
+            "${{ steps.prepare.outputs.tag }}"
+            --target "${{ steps.prepare.outputs.target_commit }}"
+            --title "${{ steps.prepare.outputs.tag }}"
+            --notes-file release-notes.md
+          )
+          if [[ "$DRAFT_RELEASE" == "true" ]]; then
+            args+=(--draft)
+          fi
+          gh release create "${args[@]}"
+          python3 - <<'PY'
+          import json
+          import subprocess
+          data = json.loads(open("release-evidence.json", encoding="utf-8").read())
+          tag = data["tag"]
+          url = subprocess.check_output(
+              ["gh", "release", "view", tag, "--json", "url", "--jq", ".url"],
+              text=True,
+          ).strip()
+          data["releaseUrl"] = url
+          data["conclusion"] = "created"
+          with open("release-evidence.json", "w", encoding="utf-8") as handle:
+              json.dump(data, handle, ensure_ascii=False, indent=2, sort_keys=True)
+              handle.write("\n")
+          PY
+
+      - name: Upload release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-release-evidence-${{ inputs.release_version }}
+          path: |
+            release-evidence.json
+            release-notes.md
+          if-no-files-found: ignore
