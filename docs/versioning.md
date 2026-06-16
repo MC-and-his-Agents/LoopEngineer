@@ -1,6 +1,6 @@
 # LoopEngineer Versioning
 
-LoopEngineer uses layered versioning. Product releases, plugin compatibility, loop protocols, schemas, skills, and external adapters are related but separate compatibility boundaries.
+LoopEngineer uses layered versioning. Product releases, plugin compatibility, loop protocols, engine contracts, schemas, skills, and external adapters are related but separate compatibility boundaries.
 
 ## Version Layers
 
@@ -9,6 +9,7 @@ LoopEngineer uses layered versioning. Product releases, plugin compatibility, lo
 | Product version | `VERSION`, Git tag `vX.Y.Z`, `metadata/loopengineer.json.version` | External LoopEngineer release identity. |
 | Plugin API version | `metadata/loopengineer.json.pluginApiVersion`, plugin manifest `version` when the plugin skeleton exists | Codex plugin packaging and host compatibility. |
 | Protocol version | `protocolVersion` | Skill entrypoint, routing, scheduling, report consumption, and handoff protocol compatibility. |
+| Engine contract version | `engineContractVersion` | Runtime-neutral CLI/JSON engine contract compatibility. |
 | Schema version | `schemaMajorVersion`, schema file `schemaVersion`, instance `schemaVersion` | Structured state, reports, budgets, manifests, and tables compatibility. |
 | Skill contract version | `skillContractVersion` in each `skills/*/skill.yaml` | Skill trigger, entrypoint, reads, writes, and expected output compatibility. |
 | Adapter contract version | `adapterContractVersion` | Optional external integration contract compatibility, including future Loom adapters. |
@@ -35,6 +36,7 @@ Before `1.0.0`, compatibility can still change, but changes must be documented. 
 - `0.2.0`: core skill import, short entrypoints, and protocol profiles.
 - `0.3.0`: structure definitions and deterministic scripts.
 - `0.4.0`: loop audit, cost control, and watcher strategy.
+- `0.5.0`: runtime-neutral CLI/JSON engine contract and optional adapters.
 - `1.0.0`: stable protocol, schemas, skill entrypoints, and migration strategy.
 
 Release tags use `vX.Y.Z`, for example `v0.1.0`.
@@ -48,6 +50,7 @@ Compatibility fields must not be mixed:
 - `version` is the LoopEngineer product version.
 - `pluginApiVersion` is the Codex plugin API compatibility boundary.
 - `protocolVersion` is the loop protocol compatibility boundary.
+- `engineContractVersion` is the runtime-neutral CLI/JSON engine contract boundary. `0` means no stable engine contract is available yet.
 - `schemaMajorVersion` is the latest stable schema major line.
 - `skillContractVersion` is the baseline skill contract version for skills that do not declare a newer contract.
 - `adapterContractVersion` is the external adapter compatibility boundary. `0` means no stable adapter contract is available yet.
@@ -69,6 +72,25 @@ Changing plugin host requirements can require a plugin version bump even when th
 - handoff and recovery protocol expectations.
 
 Compatible additions can stay in the same protocol version. Removing a required field, changing role ownership semantics, or changing completion and evidence rules requires a new protocol version.
+
+## Engine Contract Version
+
+`engineContractVersion` covers compatibility of the runtime-neutral CLI/JSON
+engine contract:
+
+- command names and capability names;
+- JSON envelope fields;
+- exit code meanings;
+- required input arguments;
+- stable result and failure locations for engine callers.
+
+The initial value is `0`, meaning no stable engine contract has been published.
+The first stable CLI/JSON engine contract should move to `1` after #28 defines
+the boundary and #82 lands the entrypoint.
+
+MCP and host hooks do not define the engine contract. They are adapters over
+the CLI/JSON engine contract unless a later issue explicitly changes that
+boundary.
 
 ## Skill Contract Version
 
@@ -164,6 +186,7 @@ The compatibility section records the versions that reviewers need to reason abo
 
 - pluginApiVersion: 1
 - protocolVersion: 1
+- engineContractVersion: 0
 - schemaMajorVersion: 1
 - skillContractVersion: 1
 - adapterContractVersion: 0
@@ -187,6 +210,7 @@ Before a release tag is created, confirm:
 
 - `VERSION` equals `metadata/loopengineer.json.version`.
 - `CHANGELOG.md` contains the current product version.
+- `metadata/loopengineer.json.engineContractVersion` exists.
 - Every existing `skills/*/skill.yaml` declares `version` and `skillContractVersion`.
 - Every existing `schemas/v*/...schema.json` declares `$id`, `schemaVersion`, and `kind`.
 

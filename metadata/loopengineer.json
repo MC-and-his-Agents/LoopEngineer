@@ -6,6 +6,7 @@
   "status": "experimental",
   "pluginApiVersion": "1",
   "protocolVersion": "1",
+  "engineContractVersion": "0",
   "schemaMajorVersion": "1",
   "skillContractVersion": "1",
   "adapterContractVersion": "0"
