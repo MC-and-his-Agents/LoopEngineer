@@ -90,6 +90,16 @@ class ValidateStructuresTest(unittest.TestCase):
         fields = [item["field"] for item in payload["failures"]]
         self.assertIn("items.requested_paths", fields)
 
+    def test_invalid_watcher_inbox_fails(self):
+        code, payload, _ = run_validator(
+            "--input-file",
+            "schemas/v1/examples/watcher-inbox.invalid-empty-sources.json",
+        )
+
+        self.assertEqual(code, 1)
+        fields = [item["field"] for item in payload["failures"]]
+        self.assertIn("sources", fields)
+
     def test_unsupported_kind_fails_closed(self):
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as handle:
             json.dump({"schemaVersion": "1.0", "kind": "loopengineer.unknown"}, handle)

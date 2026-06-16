@@ -171,6 +171,26 @@ def summarize_structure(data: dict[str, Any], *, mode: str) -> dict[str, Any]:
                 "nextAction": next_action(data),
             }
         )
+    elif kind == "loopengineer.watcherInbox":
+        summary = data.get("summary", {})
+        base.update(
+            {
+                "inboxId": data.get("inbox_id"),
+                "watcherId": data.get("watcher_id"),
+                "stateRoot": data.get("state_root"),
+                "sourceCount": len(data.get("sources", [])),
+                "summary": summary,
+                "nextAction": next_action(data),
+            }
+        )
+        if mode == "full":
+            base["requiredNextActions"] = [
+                {
+                    "owner": action.get("owner"),
+                    "action": action.get("action"),
+                }
+                for action in data.get("required_next_actions", [])
+            ]
     return base
 
 
