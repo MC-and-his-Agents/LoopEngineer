@@ -21,7 +21,7 @@ MCP and hooks last.
 | M2 | Plugin skeleton and lightweight routing | #10, #11, #12, #33 | Add plugin structure and route work without triggering heavy protocols. |
 | M3 | Protocol profiles and skill refactor | #13, #14, #15, #16, #17, #34 | Import and split core skills with provenance and profile selection. |
 | M4 | Deterministic scripts and structure definitions | #18, #19, #20, #21, #22, #35, #46 | Add schemas, validation, state digest, and report consumption scripts. |
-| M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Add audit and coordination cost controls after core structures exist. |
+| M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Completed in `v0.4.0`: audit, coordination cost, watcher inbox, lazy channels, and watcher rotation policy. |
 | M6 | Optional MCP and hooks | #28, #29, #30, #37 | Add only after context, routing, schemas, and scripts are stable. |
 | Loom integration | External plugin integration | #38, #39, #40, #41 | Define adapter boundaries before any install or register action. |
 | Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit; see `docs/releases/v0.1.0.md`. |

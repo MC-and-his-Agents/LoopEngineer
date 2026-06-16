@@ -5,6 +5,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SUBAGENT_DOC = ROOT / "docs" / "orchestration" / "subagent-boundaries.md"
 RELEASE_DOC = ROOT / "docs" / "releases" / "v0.1.0.md"
+M5_RELEASE_DOC = ROOT / "docs" / "releases" / "v0.4.0.md"
 
 
 class PolicyReleaseDocsTest(unittest.TestCase):
@@ -49,6 +50,14 @@ class PolicyReleaseDocsTest(unittest.TestCase):
         self.assertIn("Do not create this tag as part of #47", text)
         self.assertIn("GitHub Release artifacts", text)
         self.assertIn("Package-manager publishing", text)
+
+    def test_m5_release_doc_covers_v040_publication(self):
+        text = M5_RELEASE_DOC.read_text(encoding="utf-8")
+        self.assertIn("Issue: #36", text)
+        self.assertIn("VERSION` contains `0.4.0", text)
+        self.assertIn("release_version: v0.4.0", text)
+        self.assertIn("draft_release: false", text)
+        self.assertIn("Loop audit skill", text)
 
 
 if __name__ == "__main__":

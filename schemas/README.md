@@ -13,4 +13,4 @@ Current status:
 - future schemas should live under major-versioned directories such as `schemas/v1/`;
 - schema examples and invalid examples should land with the schema that requires them.
 
-Related issues include #5, #18, and #19.
+Related issues include #5, #18, #19, and #26.

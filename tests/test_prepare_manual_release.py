@@ -69,7 +69,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.0",
+                "v0.4.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -95,11 +95,11 @@ class PrepareManualReleaseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             copy_minimal_repo(root)
-            (root / "VERSION").write_text("0.1.1\n", encoding="utf-8")
+            (root / "VERSION").write_text("0.4.1\n", encoding="utf-8")
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.1",
+                "v0.4.1",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -124,7 +124,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.0",
+                "v0.4.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -148,7 +148,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.0",
+                "v0.4.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -178,7 +178,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.0",
+                "v0.4.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -206,7 +206,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.0",
+                "v0.4.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -228,7 +228,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.1.1",
+                "v0.4.1",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
