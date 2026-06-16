@@ -17,4 +17,4 @@ Current status:
 - heavy skill entries stay short; full protocols and rare paths live in
   `references/` and are read only after profile selection.
 
-Related issues include #9, #11, #13, #14, #15, #16, and #17.
+Related issues include #9, #11, #13, #14, #15, #16, #17, and #23.

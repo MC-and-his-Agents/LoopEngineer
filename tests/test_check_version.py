@@ -43,7 +43,7 @@ class CheckVersionTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["checkedVersion"], "0.1.0")
+        self.assertEqual(payload["checkedVersion"], "0.4.0")
         self.assertEqual(payload["failures"], [])
 
     def test_version_mismatch_fails_with_file_field_and_action(self):
@@ -52,7 +52,7 @@ class CheckVersionTest(unittest.TestCase):
             copy_minimal_repo(root)
             metadata_path = root / "metadata/loopengineer.json"
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-            metadata["version"] = "0.1.1"
+            metadata["version"] = "0.4.1"
             metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
             code, payload, _ = run_check(root)

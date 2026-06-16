@@ -26,6 +26,7 @@ LoopEngineer 是一个 **agent loop control plane**。
 - [架构决策](docs/adr/index.md) 记录仓库、插件、技能和上下文安全边界。
 - [禁止内联大型工件策略](docs/context-safety/no-inline-large-artifacts.md)
   定义哪些证据应进入工件，而不是线程消息。
+- [v0.4.0 手动发布计划](docs/releases/v0.4.0.md) 记录 M5 发布检查清单和发布输入。
 - [v0.1.0 手动发布计划](docs/releases/v0.1.0.md) 记录第一个发布检查清单和 tag 规则。
 
 ---
@@ -333,7 +334,7 @@ schemas/
 templates/
 ```
 
-后续 issue 会在这个骨架上扩展产品表面：
+当前产品表面已经包含上下文安全、路由、导入的编排入口、结构校验、状态摘要、报告消费、循环审计、协作成本和观察者策略支持：
 
 ```text
 skills/
@@ -346,9 +347,8 @@ skills/
 scripts/
   context_guard.py
   state_digest.py
-  make_handoff.py
-  schema_validate.py
-  report_consume.py
+  validate_structures.py
+  consume_report.py
   loop_audit.py
   coordination_tax.py
 
@@ -357,12 +357,14 @@ schemas/
   report.schema.json
   dispatch-table.schema.json
   scheduler-pool.schema.json
-  lane-lock-table.schema.json
+  channel-state.schema.json
+  waiting-queue.schema.json
+  channel-event.schema.json
   watcher-decision.schema.json
+  watcher-inbox.schema.json
 
 templates/
   handoff-replacement.md
-  locator-notice.md
   worker-lite-initial.md
   scheduler-lite-initial.md
 ```

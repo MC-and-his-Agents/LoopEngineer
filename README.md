@@ -27,6 +27,8 @@ LoopEngineer is an **agent loop control plane**.
   and context safety boundaries.
 - [No inline large artifacts policy](docs/context-safety/no-inline-large-artifacts.md)
   defines which evidence belongs in artifacts instead of thread messages.
+- [v0.4.0 manual release plan](docs/releases/v0.4.0.md) records the M5 release
+  checklist and publication inputs.
 - [v0.1.0 manual release plan](docs/releases/v0.1.0.md) records the first
   release checklist and tag rule.
 
@@ -339,8 +341,9 @@ schemas/
 templates/
 ```
 
-The planned product surface expands from that skeleton as the related issues
-land:
+The current product surface includes context safety, routing, imported
+orchestration entrypoints, structure validation, state digest, report
+consumption, loop audit, coordination cost, and watcher policy support:
 
 ```text
 skills/
@@ -353,9 +356,8 @@ skills/
 scripts/
   context_guard.py
   state_digest.py
-  make_handoff.py
-  schema_validate.py
-  report_consume.py
+  validate_structures.py
+  consume_report.py
   loop_audit.py
   coordination_tax.py
 
@@ -364,14 +366,14 @@ schemas/
   report.schema.json
   dispatch-table.schema.json
   scheduler-pool.schema.json
-  lane-lock-table.schema.json
+  channel-state.schema.json
+  waiting-queue.schema.json
+  channel-event.schema.json
   watcher-decision.schema.json
+  watcher-inbox.schema.json
 
 templates/
   handoff-replacement.md
-  locator-notice.md
-  worker-lite-initial.md
-  scheduler-lite-initial.md
 ```
 
 The intended division of responsibility is:
