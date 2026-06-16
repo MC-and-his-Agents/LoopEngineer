@@ -52,6 +52,15 @@ def copy_minimal_repo(target: Path) -> None:
 
 
 class PrepareManualReleaseTest(unittest.TestCase):
+    def test_workflow_prepare_step_exports_gh_token(self):
+        workflow = (ROOT / ".github/workflows/manual-release.yml").read_text(encoding="utf-8")
+
+        self.assertIn("GH_TOKEN: ${{ github.token }}", workflow)
+        self.assertLess(
+            workflow.index("GH_TOKEN: ${{ github.token }}"),
+            workflow.index("python3 scripts/prepare_manual_release.py"),
+        )
+
     def test_ready_plan_creates_release_notes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
