@@ -52,7 +52,7 @@ class ReleaseReadinessTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["checkedVersion"], "0.4.0")
+        self.assertEqual(payload["checkedVersion"], "0.5.0")
         self.assertEqual(payload["failures"], [])
         self.assertEqual(payload["testResult"]["status"], "skipped")
 
@@ -60,7 +60,7 @@ class ReleaseReadinessTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             copy_minimal_repo(root)
-            (root / "VERSION").write_text("0.4.1\n", encoding="utf-8")
+            (root / "VERSION").write_text("0.5.1\n", encoding="utf-8")
 
             code, payload, _ = run_readiness(root, "--skip-tests")
 
@@ -77,7 +77,7 @@ class ReleaseReadinessTest(unittest.TestCase):
             copy_minimal_repo(root)
             plugin_path = root / ".codex-plugin/plugin.json"
             plugin = json.loads(plugin_path.read_text(encoding="utf-8"))
-            plugin["version"] = "0.4.1"
+            plugin["version"] = "0.5.1"
             plugin_path.write_text(json.dumps(plugin), encoding="utf-8")
 
             code, payload, _ = run_readiness(root, "--skip-tests")

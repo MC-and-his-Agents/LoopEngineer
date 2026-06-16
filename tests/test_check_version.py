@@ -43,7 +43,7 @@ class CheckVersionTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["checkedVersion"], "0.4.0")
+        self.assertEqual(payload["checkedVersion"], "0.5.0")
         self.assertEqual(payload["failures"], [])
 
     def test_version_mismatch_fails_with_file_field_and_action(self):
@@ -52,7 +52,7 @@ class CheckVersionTest(unittest.TestCase):
             copy_minimal_repo(root)
             metadata_path = root / "metadata/loopengineer.json"
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-            metadata["version"] = "0.4.1"
+            metadata["version"] = "0.5.1"
             metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
             code, payload, _ = run_check(root)
@@ -96,6 +96,51 @@ class CheckVersionTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(payload["failures"][0]["file"], "schemas/v1/context-budget.schema.json")
         self.assertEqual(payload["failures"][0]["field"], "kind")
+
+    def test_missing_engine_contract_version_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_minimal_repo(root)
+            metadata_path = root / "metadata/loopengineer.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            del metadata["engineContractVersion"]
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+            code, payload, _ = run_check(root)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["failures"][0]["file"], "metadata/loopengineer.json")
+        self.assertEqual(payload["failures"][0]["field"], "engineContractVersion")
+
+    def test_wrong_engine_contract_version_fails_for_current_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_minimal_repo(root)
+            metadata_path = root / "metadata/loopengineer.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["engineContractVersion"] = "0"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+            code, payload, _ = run_check(root)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["failures"][0]["file"], "metadata/loopengineer.json")
+        self.assertEqual(payload["failures"][0]["field"], "engineContractVersion")
+
+    def test_wrong_adapter_contract_version_fails_for_current_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_minimal_repo(root)
+            metadata_path = root / "metadata/loopengineer.json"
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata["adapterContractVersion"] = "1"
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+            code, payload, _ = run_check(root)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["failures"][0]["file"], "metadata/loopengineer.json")
+        self.assertEqual(payload["failures"][0]["field"], "adapterContractVersion")
 
     def test_changelog_missing_current_version_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

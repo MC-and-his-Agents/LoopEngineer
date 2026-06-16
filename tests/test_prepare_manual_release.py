@@ -69,7 +69,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.0",
+                "v0.5.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -90,16 +90,26 @@ class PrepareManualReleaseTest(unittest.TestCase):
         self.assertEqual(payload["plan"], "create")
         self.assertEqual(payload["targetCommit"], "abc1234")
         self.assertIn("## Validation", notes_text)
+        for field in (
+            "productVersion: 0.5.0",
+            "pluginApiVersion: 1",
+            "protocolVersion: 1",
+            "engineContractVersion: 1",
+            "schemaMajorVersion: 1",
+            "skillContractVersion: 1",
+            "adapterContractVersion: 0",
+        ):
+            self.assertIn(field, notes_text)
 
     def test_readiness_failure_blocks_release(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             copy_minimal_repo(root)
-            (root / "VERSION").write_text("0.4.1\n", encoding="utf-8")
+            (root / "VERSION").write_text("0.5.1\n", encoding="utf-8")
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.1",
+                "v0.5.1",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -124,7 +134,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.0",
+                "v0.5.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -148,7 +158,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.0",
+                "v0.5.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -178,7 +188,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.0",
+                "v0.5.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -206,7 +216,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.0",
+                "v0.5.0",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -228,7 +238,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.4.1",
+                "v0.5.1",
                 "--target-commit",
                 "abc1234",
                 "--main-commit",

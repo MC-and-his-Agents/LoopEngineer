@@ -86,8 +86,8 @@ class LoopEngineerCliTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
         self.assertEqual(payload["capability"], "preflight")
-        self.assertEqual(payload["result"]["productVersion"], "0.4.0")
-        self.assertEqual(payload["result"]["engineContractVersion"], "0")
+        self.assertEqual(payload["result"]["productVersion"], "0.5.0")
+        self.assertEqual(payload["result"]["engineContractVersion"], "1")
         reminder_codes = [item["code"] for item in payload["result"]["reminders"]]
         self.assertIn("route_before_escalating", reminder_codes)
         self.assertIn("context_guard_before_large_message", reminder_codes)

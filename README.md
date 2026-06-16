@@ -27,7 +27,7 @@ LoopEngineer is an **agent loop control plane**.
   and context safety boundaries.
 - [No inline large artifacts policy](docs/context-safety/no-inline-large-artifacts.md)
   defines which evidence belongs in artifacts instead of thread messages.
-- [v0.4.0 manual release plan](docs/releases/v0.4.0.md) records the M5 release
+- [v0.5.0 manual release plan](docs/releases/v0.5.0.md) records the M6 release
   checklist and publication inputs.
 - [v0.1.0 manual release plan](docs/releases/v0.1.0.md) records the first
   release checklist and tag rule.

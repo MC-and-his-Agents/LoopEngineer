@@ -14,6 +14,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+EXPECTED_COMPATIBILITY_BY_VERSION = {
+    "0.5.0": {
+        "engineContractVersion": "1",
+        "adapterContractVersion": "0",
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -142,6 +148,35 @@ def check_metadata_version(root: Path, version: str | None, findings: list[Findi
                 "update metadata/loopengineer.json.version or VERSION so they match",
             )
         )
+    for field in (
+        "pluginApiVersion",
+        "protocolVersion",
+        "engineContractVersion",
+        "schemaMajorVersion",
+        "skillContractVersion",
+        "adapterContractVersion",
+    ):
+        if not isinstance(data.get(field), str) or not data.get(field):
+            findings.append(
+                Finding(
+                    "metadata/loopengineer.json",
+                    field,
+                    f"{field} must be a non-empty string",
+                    f"set metadata/loopengineer.json.{field}",
+                )
+            )
+    expected = EXPECTED_COMPATIBILITY_BY_VERSION.get(version or "")
+    if expected:
+        for field, expected_value in expected.items():
+            if data.get(field) != expected_value:
+                findings.append(
+                    Finding(
+                        "metadata/loopengineer.json",
+                        field,
+                        f"{field} must be {expected_value!r} for version {version}",
+                        f"set metadata/loopengineer.json.{field} to {expected_value}",
+                    )
+                )
 
 
 def check_changelog(root: Path, version: str | None, findings: list[Finding]) -> None:
