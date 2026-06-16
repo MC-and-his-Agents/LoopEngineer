@@ -37,6 +37,9 @@ and worker coordination.
 - Lane locks: `references/lane-locks.md`
 - Scheduler lifecycle: `references/scheduler-lifecycle.md`
 - Watcher automation: `references/watcher-automation.md`
+- Watcher inbox and rotation policy:
+  `docs/orchestration/watcher-inbox.md`,
+  `docs/orchestration/watcher-rotation-policy.md`
 - Templates: `references/templates.md`
 
 ## Hard Constraints
