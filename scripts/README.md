@@ -11,6 +11,7 @@ Current status:
 - `context_guard.py` checks text against a v1 context budget profile;
 - `prepare_manual_release.py` prepares the fail-closed manual tag and GitHub
   Release plan used by the workflow dispatch release workflow;
+- `state_digest.py` builds compact state summaries for heartbeat and handoff prompts;
 - `validate_structures.py` checks LoopEngineer structure files and examples;
 - scripts must output machine-readable results and fail closed when added;
 - scripts must not implicitly modify GitHub, git, PRs, issues, or external state.
