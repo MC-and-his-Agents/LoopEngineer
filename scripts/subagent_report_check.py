@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 from pathlib import Path
 import sys
 from typing import Any
@@ -47,12 +48,25 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def normalize_relative_path(path: str) -> str | None:
+    if path.startswith("/"):
+        return None
+    normalized = posixpath.normpath(path)
+    if normalized in {"", "."} or normalized == ".." or normalized.startswith("../"):
+        return None
+    return normalized
+
+
 def path_allowed(path: str, allowed_paths: list[str]) -> bool:
-    normalized = path.strip("/")
+    normalized = normalize_relative_path(path)
+    if normalized is None:
+        return False
     for allowed in allowed_paths:
-        allowed_normalized = allowed.strip("/")
-        if allowed_normalized in {"", "."}:
+        if allowed.strip() == ".":
             return True
+        allowed_normalized = normalize_relative_path(allowed)
+        if allowed_normalized is None:
+            continue
         if normalized == allowed_normalized or normalized.startswith(allowed_normalized.rstrip("/") + "/"):
             return True
     return False

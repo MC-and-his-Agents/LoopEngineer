@@ -128,6 +128,25 @@ class ConsumeReportTest(unittest.TestCase):
         self.assertEqual(receipts, [])
         self.assertEqual(payload["failures"][0]["field"], "provider_context.changed_paths[0].path")
 
+    def test_subagent_report_without_assignment_fails_before_writing_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "consumption"
+            code, payload, _ = run_consume(
+                "--report-file",
+                str(SUBAGENT_REPORT),
+                "--output-dir",
+                str(output_dir),
+                "--consumed-by",
+                "scheduler-87",
+            )
+
+            receipts = list(output_dir.glob("*.json")) if output_dir.exists() else []
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["status"], "fail")
+        self.assertEqual(receipts, [])
+        self.assertEqual(payload["failures"][0]["field"], "assignment_file")
+
     def test_non_report_input_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             output_dir = Path(tmp) / "consumption"

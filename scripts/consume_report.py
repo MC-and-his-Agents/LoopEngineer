@@ -116,6 +116,21 @@ def consume_report(
                 failure(file, "kind", "input must be loopengineer.report", "pass a report artifact")
             ],
         }
+    context = report.get("provider_context")
+    if isinstance(context, dict) and context.get("provider") == "subagent" and assignment_path is None:
+        return {
+            "status": "fail",
+            "receiptPath": None,
+            "summary": None,
+            "failures": [
+                failure(
+                    file,
+                    "assignment_file",
+                    "subagent report requires assignment validation before consumption",
+                    "pass --assignment-file for subagent provider reports",
+                )
+            ],
+        }
     report_id = report.get("report_id")
     if not isinstance(report_id, str) or not REPORT_ID_RE.match(report_id):
         return {
