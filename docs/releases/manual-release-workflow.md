@@ -2,9 +2,10 @@
 
 Issue: #65
 
-The manual release workflow is a `workflow_dispatch` entry point for creating a
-tag and GitHub Release after release readiness passes. It is intentionally not a
-merge-triggered release workflow.
+The manual release workflow is a `workflow_dispatch` fallback entry point for
+creating a tag and GitHub Release after release readiness passes. The automatic
+release workflow is the default merge-triggered path; this workflow remains the
+break-glass path for explicit maintainer review and recovery.
 
 ## Automated
 
@@ -32,6 +33,10 @@ merge-triggered release workflow.
 - Confirming the release target is intended.
 - Reviewing the generated draft release before publishing it.
 - Package publication, which remains out of scope.
+
+Use this workflow instead of the automatic path only when a maintainer needs an
+explicit target commit, recovery from a failed automatic run, or a manually
+reviewed draft release.
 
 ## Fail-Closed Conditions
 
