@@ -1,44 +1,33 @@
-name: Manual Release
+name: Auto Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_version:
-        description: Release tag to create, for example v0.1.0
-        required: true
-        type: string
-      release_commit:
-        description: Optional explicit commit SHA. Empty means the selected workflow ref.
-        required: false
-        type: string
-      allow_explicit_commit:
-        description: Allow release_commit to differ from origin/main.
-        required: true
-        default: false
-        type: boolean
-      draft_release:
-        description: Create the GitHub Release as draft.
-        required: true
-        default: true
-        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+      - CHANGELOG.md
+      - metadata/loopengineer.json
+      - .codex-plugin/plugin.json
+      - "docs/releases/v*.md"
 
 permissions:
   contents: write
 
 concurrency:
-  group: manual-release-${{ inputs.release_version }}
+  group: auto-release-main
   cancel-in-progress: false
 
 jobs:
   release:
-    name: manual release
+    name: auto release
+    if: github.repository == 'MC-and-his-Agents/LoopEngineer'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout release target
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.release_commit != '' && inputs.release_commit || github.ref }}
 
       - name: Fetch main and tags
         run: git fetch --tags origin main
@@ -47,24 +36,16 @@ jobs:
         id: prepare
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ inputs.release_version }}
-          ALLOW_EXPLICIT_COMMIT: ${{ inputs.allow_explicit_commit }}
-          DRAFT_RELEASE: ${{ inputs.draft_release }}
         run: |
           set -uo pipefail
           args=(
-            --release-version "$RELEASE_VERSION"
-            --release-mode manual
+            --auto-version
+            --release-mode auto
+            --draft-release
             --target-commit "$(git rev-parse HEAD)"
             --main-commit "$(git rev-parse origin/main)"
             --release-notes-file release-notes.md
           )
-          if [[ "$ALLOW_EXPLICIT_COMMIT" == "true" ]]; then
-            args+=(--explicit-target)
-          fi
-          if [[ "$DRAFT_RELEASE" == "true" ]]; then
-            args+=(--draft-release)
-          fi
           set +e
           python3 scripts/prepare_manual_release.py "${args[@]}" > release-evidence.json
           exit_code=$?
@@ -98,22 +79,17 @@ jobs:
           git tag "${{ steps.prepare.outputs.tag }}" "${{ steps.prepare.outputs.target_commit }}"
           git push origin "${{ steps.prepare.outputs.tag }}"
 
-      - name: Create GitHub Release
+      - name: Create draft GitHub Release
         if: steps.prepare.outputs.plan == 'create'
         env:
           GH_TOKEN: ${{ github.token }}
-          DRAFT_RELEASE: ${{ inputs.draft_release }}
         run: |
-          args=(
-            "${{ steps.prepare.outputs.tag }}"
-            --target "${{ steps.prepare.outputs.target_commit }}"
-            --title "${{ steps.prepare.outputs.tag }}"
-            --notes-file release-notes.md
-          )
-          if [[ "$DRAFT_RELEASE" == "true" ]]; then
-            args+=(--draft)
-          fi
-          gh release create "${args[@]}"
+          gh release create \
+            "${{ steps.prepare.outputs.tag }}" \
+            --target "${{ steps.prepare.outputs.target_commit }}" \
+            --title "${{ steps.prepare.outputs.tag }}" \
+            --notes-file release-notes.md \
+            --draft
           python3 - <<'PY'
           import json
           import subprocess
@@ -134,7 +110,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: manual-release-evidence-${{ inputs.release_version }}
+          name: auto-release-evidence-${{ github.run_id }}
           path: |
             release-evidence.json
             release-notes.md
