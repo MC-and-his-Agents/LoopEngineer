@@ -87,6 +87,35 @@ class SubagentReportCheckTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("provider_context.changed_paths[0].path", [item["field"] for item in payload["failures"]])
 
+    def test_parent_traversal_fails_even_with_broad_allowed_scope(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as assignment_handle:
+            assignment = json.loads((ROOT / ASSIGNMENT).read_text(encoding="utf-8"))
+            assignment["allowed_write_paths"] = ["docs/"]
+            json.dump(assignment, assignment_handle)
+            assignment_handle.flush()
+
+            with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as report_handle:
+                report = json.loads((ROOT / VALID_REPORT).read_text(encoding="utf-8"))
+                report["provider_context"]["changed_paths"] = [
+                    {
+                        "path": "docs/orchestration/../scripts/consume_report.py",
+                        "change_type": "modified",
+                    }
+                ]
+                report["provider_context"]["report_locator"] = report_handle.name
+                json.dump(report, report_handle)
+                report_handle.flush()
+
+                code, payload, _ = run_check(
+                    "--assignment-file",
+                    assignment_handle.name,
+                    "--report-file",
+                    report_handle.name,
+                )
+
+        self.assertEqual(code, 1)
+        self.assertIn("provider_context.changed_paths[0].path", [item["field"] for item in payload["failures"]])
+
     def test_missing_validation_fails(self):
         code, payload, _ = run_check(
             "--assignment-file",

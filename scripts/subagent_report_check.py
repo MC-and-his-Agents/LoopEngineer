@@ -51,6 +51,8 @@ def load_json(path: Path) -> dict[str, Any]:
 def normalize_relative_path(path: str) -> str | None:
     if path.startswith("/"):
         return None
+    if ".." in path.split("/"):
+        return None
     normalized = posixpath.normpath(path)
     if normalized in {"", "."} or normalized == ".." or normalized.startswith("../"):
         return None
