@@ -8,7 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 class ReadmeBadgeTest(unittest.TestCase):
     def test_readmes_use_marketing_badges_without_project_records(self):
         expected_badges = (
-            "img.shields.io/github/v/release/MC-and-his-Agents/LoopEngineer",
+            "img.shields.io/badge/dynamic/json",
+            "raw.githubusercontent.com%2FMC-and-his-Agents%2FLoopEngineer%2Fmain%2Fmetadata%2Floopengineer.json",
+            "query=%24.version",
+            "prefix=v",
+            "img.shields.io/badge/license-MIT",
             "Codex-Plugin",
             "Loop-Engine",
             "Agent-Loop",
@@ -25,6 +29,8 @@ class ReadmeBadgeTest(unittest.TestCase):
             "github/stars",
             "github/forks",
             "github/downloads",
+            "github/v/release",
+            "github/license",
         )
 
         for path in (ROOT / "README.md", ROOT / "README.zh-CN.md"):
