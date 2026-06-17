@@ -1,5 +1,27 @@
 # Worker Protocol
 
+## worker_lite Providers / worker_lite 后端
+
+`worker_lite` can use `direct`, `subagent`, or `thread` provider.
+
+- `direct`: the current agent owns a single bounded scope and reports evidence
+  directly.
+- `subagent`: a short, low-risk, isolated, bounded execution provider. It must
+  receive an explicit subagent assignment and return a locator-backed report.
+- `thread`: a formal worker thread with worksite confirmation, branch/worktree
+  ownership, goal lifecycle, report protocol, and recovery semantics.
+
+Subagent provider is not the control plane. It must not own shared channels,
+state transitions, gates, merge-ready, merge, release, closeout, external
+writes, or recovery authority. Its final answer is a locator notice and
+auxiliary evidence only; completion requires a report artifact and main
+control-plane consumption.
+
+Escalate to `thread` provider when the task is long running, high risk, touches
+shared contracts, needs external writes, requires independent branch/worktree
+state, may need strict recovery, or is gated by guardian/review/merge/release
+readiness.
+
 ## Worksite Confirmation / 现场确认
 
 第一步只读。确认并回报：
@@ -92,6 +114,13 @@ block、complete 或 recover goal 前读取 `goal-lifecycle.md`。
 - 即将将 goal 标记为 `blocked` 或 `complete`。
 
 如果 `gate_owner=scheduler`，正常本地完成态是 `waiting-scheduler-gate`，不是 merge 或 final complete。完整 gate-readiness evidence 写入 artifact，跨线程只传 report locator。
+
+For subagent provider, the required completion report must include provider
+context: assignment id, `agent_id`, `thread_id`, report locator, changed paths,
+validation result, and empty forbidden authority claims. The scheduler or main
+control plane must check the assignment/report binding before writing a
+consumption receipt. A subagent final answer without that report is not a state
+transition.
 
 ## Read-Only Explorers / 只读 Explorer
 

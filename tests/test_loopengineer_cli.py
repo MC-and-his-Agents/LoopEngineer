@@ -79,6 +79,18 @@ class LoopEngineerCliTest(unittest.TestCase):
         self.assertEqual(payload["capability"], "coordination_tax")
         self.assertEqual(payload["summary"]["recommendedProfile"], "direct")
 
+    def test_provider_select_wraps_recommendation(self):
+        code, payload, _ = run_engine(
+            "provider-select",
+            "--isolated-scope",
+            "--parallelizable",
+        )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["capability"], "provider_selection")
+        self.assertEqual(payload["summary"]["recommendedProvider"], "subagent")
+        self.assertEqual(payload["result"]["recommended_provider"], "subagent")
+
     def test_preflight_is_admission_reminder_only(self):
         code, payload, stderr = run_engine("preflight")
 
@@ -86,7 +98,7 @@ class LoopEngineerCliTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
         self.assertEqual(payload["capability"], "preflight")
-        self.assertEqual(payload["result"]["productVersion"], "0.5.0")
+        self.assertEqual(payload["result"]["productVersion"], "0.6.0")
         self.assertEqual(payload["result"]["engineContractVersion"], "1")
         reminder_codes = [item["code"] for item in payload["result"]["reminders"]]
         self.assertIn("route_before_escalating", reminder_codes)

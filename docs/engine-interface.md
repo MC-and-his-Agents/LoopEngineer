@@ -39,6 +39,7 @@ The first engine contract exposes these capabilities:
 - `state_digest`
 - `loop_audit`
 - `coordination_tax`
+- `provider_selection`
 - `preflight` or `admission_reminder`
 
 The canonical entrypoint is:
@@ -55,6 +56,7 @@ validate-structures
 state-digest
 loop-audit
 coordination-tax
+provider-select
 preflight
 ```
 
@@ -72,9 +74,10 @@ Exit code meanings are stable for engine callers:
 - `1`: `status` is `fail`;
 - `2`: `status` is `error`.
 
-`consume_report` is not part of the first engine contract. It writes a
-consumption receipt and is a `local-artifact-write` capability. It can only be
-added later through an explicit gated local write policy.
+`provider-select` is a read-only diagnostic recommendation. `consume_report` is
+not part of the engine contract. It writes a consumption receipt and is a
+`local-artifact-write` capability. It can only be added later through an
+explicit gated local write policy.
 
 ## Risk Classes
 
@@ -122,6 +125,7 @@ The first MCP adapter maps only these tools to engine commands:
 | `loopengineer.state_digest` | `state-digest` |
 | `loopengineer.loop_audit` | `loop-audit` |
 | `loopengineer.coordination_tax` | `coordination-tax` |
+| `loopengineer.provider_selection` | `provider-select` |
 | `loopengineer.preflight` | `preflight` |
 
 It must not expose `consume_report`, release readiness, GitHub, git, CI, PR,

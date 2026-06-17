@@ -100,6 +100,26 @@ class ValidateStructuresTest(unittest.TestCase):
         fields = [item["field"] for item in payload["failures"]]
         self.assertIn("sources", fields)
 
+    def test_invalid_subagent_assignment_missing_instruction_fails(self):
+        code, payload, _ = run_validator(
+            "--input-file",
+            "schemas/v1/examples/subagent-assignment.invalid-missing-instruction.json",
+        )
+
+        self.assertEqual(code, 1)
+        fields = [item["field"] for item in payload["failures"]]
+        self.assertIn("instruction_id", fields)
+
+    def test_invalid_subagent_report_missing_locator_fails(self):
+        code, payload, _ = run_validator(
+            "--input-file",
+            "schemas/v1/examples/report.subagent.invalid-missing-locator.json",
+        )
+
+        self.assertEqual(code, 1)
+        fields = [item["field"] for item in payload["failures"]]
+        self.assertIn("provider_context.report_locator", fields)
+
     def test_unsupported_kind_fails_closed(self):
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as handle:
             json.dump({"schemaVersion": "1.0", "kind": "loopengineer.unknown"}, handle)

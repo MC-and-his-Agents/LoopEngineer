@@ -18,6 +18,10 @@ signal that the lower profile cannot handle.
 
 - Prefer `direct` for single-owner work.
 - Prefer `worker_lite` for one bounded delegated scope.
+- Inside `worker_lite`, prefer `direct` for single-owner work, `subagent` for
+  short low-risk isolated bounded work, and `thread` for long-running,
+  recovery-sensitive, gate-heavy, shared-contract, external-write, or worktree
+  work.
 - Prefer `scheduler_lite` before `scheduler_full` unless strict gates or shared
   contracts require stronger coordination.
 - Prefer `incident_recovery` when current state cannot be trusted.

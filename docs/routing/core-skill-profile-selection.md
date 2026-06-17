@@ -10,7 +10,7 @@ sufficient profile before reading heavy references.
 | Profile | Skill | Required reads | Forbidden reads |
 | --- | --- | --- | --- |
 | `direct` | none | `docs/routing/route-profiles.md`, `docs/routing/trigger-matrix.md` | All `codex-thread-orchestration` and `codex-scheduler-watcher` references |
-| `worker_lite` | `codex-thread-orchestration` | `references/worker.md`, `references/reporting.md`, `references/orchestration-carrier.md` | Watcher references; scheduler gate/closeout references unless requested by scheduler |
+| `worker_lite` | `codex-thread-orchestration` | `references/worker.md`, `references/reporting.md`, `references/orchestration-carrier.md`; for provider choice also read `docs/routing/route-profiles.md` | Watcher references; scheduler gate/closeout references unless requested by scheduler |
 | `scheduler_lite` | `codex-thread-orchestration` | `references/scheduler.md`, `references/reporting.md`, `references/orchestration-carrier.md` | Watcher references; `references/gates-and-closeout.md` unless gates are in scope |
 | `scheduler_full` | `codex-thread-orchestration` | `references/imported-protocol.md`, `references/scheduler.md`, `references/reporting.md`, `references/gates-and-closeout.md`, `references/templates.md` | Watcher references unless shared lanes or multiple schedulers are in scope |
 | `watcher_full` | `codex-scheduler-watcher` | `references/imported-protocol.md`, `references/unit-model.md`, `references/providers.md`, `references/lane-locks.md`, `references/scheduler-lifecycle.md`, `references/parallel-scheduling.md` | Worker references and scheduler implementation details except scheduler prompt handoff requirements |
@@ -20,6 +20,9 @@ sufficient profile before reading heavy references.
 
 - `direct` work must not load either core orchestration skill.
 - `worker_lite` is for one bounded worker scope with scheduler-readable reports.
+  It may use `direct`, `subagent`, or `thread`; subagent is only a bounded
+  execution provider and never owns state transition, gate, merge, release, or
+  closeout.
 - `scheduler_lite` is for one scheduler coordinating a small number of scopes
   without shared lanes or high-cost gates.
 - `scheduler_full` is for dependency tracking, worker replacement, report

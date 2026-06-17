@@ -16,7 +16,8 @@ automations.
 
 ## Profile Routing
 
-- `worker_lite`: bounded delegated execution by one worker.
+- `worker_lite`: bounded delegated execution by one worker using `direct`,
+  `subagent`, or `thread` provider.
 - `scheduler_lite`: one scheduler tracking a small set of independent scopes.
 - `scheduler_full`: scheduler-owned workers, reports, gates, closeout, or
   strict dependency handling.

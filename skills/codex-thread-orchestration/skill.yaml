@@ -8,6 +8,7 @@ requires:
 reads:
   - skills/codex-thread-orchestration/SOURCE.md
   - docs/routing/core-skill-profile-selection.md
+  - docs/routing/route-profiles.md
   - skills/codex-thread-orchestration/references/imported-protocol.md
   - skills/codex-thread-orchestration/references/orchestration-carrier.md
   - skills/codex-thread-orchestration/references/scheduler.md

@@ -1,6 +1,6 @@
 # Subagent Boundaries
 
-Issue: #17
+Issues: #17, #87
 
 Subagents can reduce main-thread noise, but they are bounded helpers. They do
 not replace LoopEngineer's thread communication control plane.
@@ -31,6 +31,20 @@ Each subagent assignment must state the goal, input locator, read range, write
 ownership, forbidden scope, validation expectation, conflict handling, and
 output format.
 
+For `worker_lite`, a subagent can be selected as an execution provider when the
+task is short, low risk, isolated, bounded, and useful to run outside the main
+thread. The provider contract is:
+
+- assignment records `unit_id`, `instruction_id`, `agent_id`, `thread_id`,
+  objective digest, allowed read/write paths, forbidden scope, expected report
+  type, report output path, validation expectation, next owner, and next action;
+- `agent_id` and `thread_id` may be the same value when the host exposes the
+  subagent id as a readable thread locator;
+- report consumption uses the assignment and report locator, not the subagent
+  final answer alone;
+- changed paths and validation results must be checked before a completed
+  subagent report can drive any control-plane update.
+
 ## Prohibitions
 
 Subagents must not own:
@@ -42,8 +56,13 @@ Subagents must not own:
 - external permissions, deployment, payment, or production write actions;
 - recovery authority for retired, abandoned, or `systemError` thread history.
 
-Subagent output is evidence for the main agent to review. It is not itself a
-state transition, merge-ready decision, or closeout proof.
+Escalate from subagent provider to formal thread worker when the work needs
+shared contract ownership, external writes, independent branch/worktree state,
+long-running recovery, formal gates, merge-ready, release, closeout, or strict
+state replay.
+
+Subagent output is evidence for the main agent or scheduler to review. It is
+not itself a state transition, merge-ready decision, or closeout proof.
 
 ## Completion Rule
 

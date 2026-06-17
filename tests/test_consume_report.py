@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/consume_report.py"
 VALID_REPORT = ROOT / "schemas/v1/examples/report.valid.json"
 INVALID_REPORT = ROOT / "schemas/v1/examples/report.invalid-missing-next-action.json"
+SUBAGENT_ASSIGNMENT = ROOT / "schemas/v1/examples/subagent-assignment.valid.json"
+SUBAGENT_REPORT = ROOT / "schemas/v1/examples/report.subagent.valid.json"
+SUBAGENT_OUT_OF_SCOPE_REPORT = ROOT / "schemas/v1/examples/report.subagent.invalid-out-of-scope-path.json"
 
 
 def run_consume(*args):
@@ -75,6 +78,55 @@ class ConsumeReportTest(unittest.TestCase):
         self.assertEqual(receipts, [])
         self.assertEqual(payload["failures"][0]["file"], "schemas/v1/examples/report.invalid-missing-next-action.json")
         self.assertIn("suggestedAction", payload["failures"][0])
+
+    def test_consumes_valid_subagent_report_with_assignment_receipt_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "consumption"
+            code, payload, stderr = run_consume(
+                "--report-file",
+                str(SUBAGENT_REPORT),
+                "--assignment-file",
+                str(SUBAGENT_ASSIGNMENT),
+                "--output-dir",
+                str(output_dir),
+                "--consumed-by",
+                "scheduler-87",
+                "--table-updated",
+                "yes",
+            )
+
+            receipt_path = Path(payload["receiptPath"])
+            if not receipt_path.is_absolute():
+                receipt_path = ROOT / receipt_path
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["status"], "pass")
+        self.assertEqual(receipt["provider"], "subagent")
+        self.assertEqual(receipt["subagent_consumption"]["assignment_id"], "assignment-87-docs-a")
+        self.assertEqual(receipt["subagent_consumption"]["agent_id"], "agent-87-docs-a")
+
+    def test_subagent_assignment_check_fails_before_writing_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "consumption"
+            code, payload, _ = run_consume(
+                "--report-file",
+                str(SUBAGENT_OUT_OF_SCOPE_REPORT),
+                "--assignment-file",
+                str(SUBAGENT_ASSIGNMENT),
+                "--output-dir",
+                str(output_dir),
+                "--consumed-by",
+                "scheduler-87",
+            )
+
+            receipts = list(output_dir.glob("*.json")) if output_dir.exists() else []
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["status"], "fail")
+        self.assertEqual(receipts, [])
+        self.assertEqual(payload["failures"][0]["field"], "provider_context.changed_paths[0].path")
 
     def test_non_report_input_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -122,6 +122,19 @@ watcher_full
 incident_recovery
 ```
 
+`worker_lite` can choose the lightest sufficient provider:
+
+```text
+direct
+subagent
+thread
+```
+
+Subagent provider is for short, low-risk, isolated bounded execution. It returns
+through an assignment, a report locator, validation evidence, and report
+consumption. It does not own state transitions, gates, merge, release, shared
+channels, or closeout.
+
 Simple work should stay simple.
 Risky work gets structure.
 Broken loops get recovery.
@@ -244,6 +257,10 @@ Multi-worker or gate-heavy task   → scheduler_full
 Multi-scheduler shared state      → watcher_full
 Broken or bloated loop            → incident_recovery
 ```
+
+Inside `worker_lite`, use `direct` for current-owner work, `subagent` for
+short isolated bounded work, and `thread` for high-risk, long-running,
+worktree-backed, recovery-sensitive, external-write, or gate-heavy work.
 
 ### 2. Guard the Context
 

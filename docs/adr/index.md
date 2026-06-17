@@ -9,6 +9,7 @@ boundaries, plugin shape, skill boundaries, and context safety priority.
 | [0002 Plugin and Skill Boundaries](0002-plugin-and-skill-boundaries.md) | Accepted | #4 | LoopEngineer remains a plugin-oriented control plane; core heavy skills stay separate and modular. |
 | [0003 Context Safety First](0003-context-safety-first.md) | Accepted | #4 | Context safety is the first runtime safety layer; routing follows; heavy orchestration, MCP, and hooks are deferred. |
 | [0004 Runtime-Neutral Loop Engine Interface](0004-runtime-neutral-engine-interface.md) | Accepted | #28 | M6 exposes a CLI/JSON engine contract first; MCP and host hooks are optional adapters only. |
+| [0005 Subagent worker_lite Provider](0005-subagent-worker-lite-provider.md) | Accepted | #87 | `worker_lite` supports `direct`, `subagent`, and `thread` providers while preserving LoopEngineer control-plane boundaries. |
 
 ## Rules
 

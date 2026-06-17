@@ -164,6 +164,12 @@ report_consumed:
 
 没有 `report_consumed` 时，不得把 worker report 当作已更新 fact table。旧 report 与新 report 冲突时，以项目事实源 + 最新已消费 report artifact 为准；旧 heartbeat summary 和 thread preview 不能覆盖。
 
+Subagent-backed `worker_lite` reports add one pre-consumption rule: the
+assignment/report pair must be checked before the receipt is written. The
+receipt records provider, assignment id, `agent_id`, `thread_id`, report
+locator, and consumption result. Subagent final answers, thread summaries, or
+unconsumed report files do not drive state transitions.
+
 ## Scheduler Decision Request / 请求调度决策
 
 worker 需要 scheduler 判断时，完整 blocker evidence 写入 report artifact；跨线程只发 locator notice。artifact 必须包含：
