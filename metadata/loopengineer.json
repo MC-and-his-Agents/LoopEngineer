@@ -2,7 +2,7 @@
   "name": "LoopEngineer",
   "product": "loopengineer",
   "description": "Independent Codex plugin repository for agent loop context safety, routing, evidence, audit, recovery, and coordination cost control.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "status": "experimental",
   "pluginApiVersion": "1",
   "protocolVersion": "1",

@@ -88,6 +88,27 @@ TOOLS: dict[str, dict[str, Any]] = {
             "additionalProperties": False,
         },
     },
+    "loopengineer.provider_selection": {
+        "command": "provider-select",
+        "description": "Recommend a worker_lite provider without spawning workers or mutating state.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_risk": {"type": "string", "enum": ["low", "medium", "high"]},
+                "write_scope": {"type": "string", "enum": ["none", "local", "shared-contract", "external"]},
+                "duration": {"type": "string", "enum": ["short", "medium", "long"]},
+                "needs_gate": {"type": "boolean"},
+                "external_action": {"type": "boolean"},
+                "shared_state": {"type": "boolean"},
+                "requires_recovery": {"type": "boolean"},
+                "parallelizable": {"type": "boolean"},
+                "isolated_scope": {"type": "boolean"},
+                "prefer_delegation": {"type": "boolean"},
+                "worktree_required": {"type": "boolean"},
+            },
+            "additionalProperties": False,
+        },
+    },
     "loopengineer.preflight": {
         "command": "preflight",
         "description": "Return a session admission reminder without state transition or runtime lifecycle action.",
@@ -166,6 +187,16 @@ def add_non_negative_int(argv: list[str], flag: str, value: Any) -> str | None:
     return None
 
 
+def add_bool_flag(argv: list[str], flag: str, value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, bool):
+        return f"{flag} must be a boolean"
+    if value:
+        argv.append(flag)
+    return None
+
+
 def args_for_tool(name: str, arguments: dict[str, Any]) -> tuple[list[str] | None, str | None]:
     extra = set(arguments) - set(TOOLS[name]["inputSchema"]["properties"])
     if extra:
@@ -224,6 +255,26 @@ def args_for_tool(name: str, arguments: dict[str, Any]) -> tuple[list[str] | Non
             "schedulers",
         ):
             error = add_non_negative_int(argv, "--" + key.replace("_", "-"), arguments.get(key))
+            if error:
+                return None, error
+        return argv, None
+    if name == "loopengineer.provider_selection":
+        argv = []
+        for key in ("task_risk", "write_scope", "duration"):
+            value = arguments.get(key)
+            if value is not None:
+                argv.extend(["--" + key.replace("_", "-"), value])
+        for key in (
+            "needs_gate",
+            "external_action",
+            "shared_state",
+            "requires_recovery",
+            "parallelizable",
+            "isolated_scope",
+            "prefer_delegation",
+            "worktree_required",
+        ):
+            error = add_bool_flag(argv, "--" + key.replace("_", "-"), arguments.get(key))
             if error:
                 return None, error
         return argv, None

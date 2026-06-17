@@ -19,6 +19,10 @@ EXPECTED_COMPATIBILITY_BY_VERSION = {
         "engineContractVersion": "1",
         "adapterContractVersion": "0",
     },
+    "0.6.0": {
+        "engineContractVersion": "1",
+        "adapterContractVersion": "0",
+    },
 }
 
 

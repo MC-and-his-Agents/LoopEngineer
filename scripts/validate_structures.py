@@ -72,6 +72,16 @@ CHANNEL_STATES = {
     "channel-released",
 }
 EVENT_TYPES = {"request", "grant", "wait", "deny", "release"}
+PROVIDERS = {"direct", "subagent", "thread"}
+SUBAGENT_ASSIGNMENT_ID_RE = re.compile(r"^assignment-[A-Za-z0-9._-]+$")
+SUBAGENT_REQUIRED_FORBIDDEN_SCOPE = {
+    "state_transition",
+    "shared_channel",
+    "gate",
+    "merge",
+    "release",
+    "closeout",
+}
 DECISION_TYPES = {
     "grant_channel",
     "deny_channel",
@@ -244,6 +254,130 @@ def validate_report(root: Path, path: Path, data: dict[str, Any]) -> list[dict[s
         errors.extend(require_enum(file, "producer.role", producer.get("role"), ROLES, "producer role"))
     errors.extend(validate_version(root, path, data.get("version")))
     errors.extend(validate_next_action(root, path, data.get("next_action")))
+    context = data.get("provider_context")
+    if context is not None:
+        errors.extend(validate_provider_context(root, path, context))
+    return errors
+
+
+def validate_path_items(root: Path, path: Path, data: Any, field: str, *, allow_empty: bool) -> list[dict[str, str]]:
+    file = rel(root, path)
+    errors: list[dict[str, str]] = []
+    if not isinstance(data, list):
+        return [failure(file, field, f"{field} must be an array", f"set {field} to a list of paths")]
+    if not data and not allow_empty:
+        errors.append(failure(file, field, f"{field} must be non-empty", f"add at least one {field} path"))
+    for index, item in enumerate(data):
+        if not isinstance(item, str) or not item:
+            errors.append(failure(file, f"{field}[{index}]", "path must be a non-empty string", "replace with a path string"))
+    return errors
+
+
+def validate_provider_context(root: Path, path: Path, data: Any) -> list[dict[str, str]]:
+    file = rel(root, path)
+    if not isinstance(data, dict):
+        return [failure(file, "provider_context", "provider_context must be an object", "add provider context metadata")]
+    errors = require_fields(
+        data,
+        {"provider", "assignment_id", "agent_id", "thread_id", "report_locator", "changed_paths", "validation", "authority_claims"},
+        file,
+        "provider_context",
+    )
+    errors.extend(require_enum(file, "provider_context.provider", data.get("provider"), PROVIDERS, "provider"))
+    if data.get("provider") != "subagent":
+        errors.append(failure(file, "provider_context.provider", "only subagent context is supported here", "set provider_context.provider to subagent"))
+    if not isinstance(data.get("assignment_id"), str) or not SUBAGENT_ASSIGNMENT_ID_RE.match(str(data.get("assignment_id", ""))):
+        errors.append(failure(file, "provider_context.assignment_id", "assignment_id must match assignment id pattern", "use assignment-[A-Za-z0-9._-]+"))
+    for field in ("agent_id", "thread_id", "report_locator"):
+        if not isinstance(data.get(field), str) or not data.get(field):
+            errors.append(failure(file, f"provider_context.{field}", f"{field} must be a non-empty string", f"set provider_context.{field}"))
+    changed_paths = data.get("changed_paths")
+    if not isinstance(changed_paths, list):
+        errors.append(failure(file, "provider_context.changed_paths", "changed_paths must be an array", "record changed path entries or an empty array"))
+    else:
+        for index, item in enumerate(changed_paths):
+            if not isinstance(item, dict):
+                errors.append(failure(file, f"provider_context.changed_paths[{index}]", "changed path entry must be an object", "use {path, change_type}"))
+                continue
+            errors.extend(require_fields(item, {"path", "change_type"}, file, "changed path"))
+            if not isinstance(item.get("path"), str) or not item.get("path"):
+                errors.append(failure(file, f"provider_context.changed_paths[{index}].path", "path must be a non-empty string", "set changed path"))
+    validation = data.get("validation")
+    if not isinstance(validation, dict):
+        errors.append(failure(file, "provider_context.validation", "validation must be an object", "record validation status"))
+    else:
+        errors.extend(require_fields(validation, {"status", "commands"}, file, "validation"))
+        errors.extend(require_enum(file, "provider_context.validation.status", validation.get("status"), {"pass", "fail"}, "validation status"))
+        commands = validation.get("commands")
+        if not isinstance(commands, list) or not commands:
+            errors.append(failure(file, "provider_context.validation.commands", "commands must be a non-empty array", "record validation commands"))
+    claims = data.get("authority_claims")
+    if not isinstance(claims, list):
+        errors.append(failure(file, "provider_context.authority_claims", "authority_claims must be an array", "record an empty array when none"))
+    else:
+        forbidden = sorted(set(claims) & SUBAGENT_REQUIRED_FORBIDDEN_SCOPE)
+        if forbidden:
+            errors.append(failure(file, "provider_context.authority_claims", "subagent cannot claim control-plane authority", "remove forbidden claims: " + ", ".join(forbidden)))
+    return errors
+
+
+def validate_subagent_assignment(root: Path, path: Path, data: dict[str, Any]) -> list[dict[str, str]]:
+    file = rel(root, path)
+    errors = common(root, path, data, "loopengineer.subagentAssignment")
+    errors.extend(
+        require_fields(
+            data,
+            {
+                "assignment_id",
+                "unit_id",
+                "instruction_id",
+                "provider",
+                "agent_id",
+                "thread_id",
+                "objective_digest",
+                "allowed_read_paths",
+                "allowed_write_paths",
+                "forbidden_scope",
+                "expected_report_type",
+                "report_output_path",
+                "validation_expectation",
+                "next_owner",
+                "next_action",
+            },
+            file,
+            "subagent_assignment",
+        )
+    )
+    if not isinstance(data.get("assignment_id"), str) or not SUBAGENT_ASSIGNMENT_ID_RE.match(str(data.get("assignment_id", ""))):
+        errors.append(failure(file, "assignment_id", "assignment_id must match assignment id pattern", "use assignment-[A-Za-z0-9._-]+"))
+    for field in ("unit_id", "instruction_id", "agent_id", "thread_id", "objective_digest", "report_output_path"):
+        if not isinstance(data.get(field), str) or not data.get(field):
+            errors.append(failure(file, field, f"{field} must be a non-empty string", f"set {field}"))
+    errors.extend(require_enum(file, "provider", data.get("provider"), PROVIDERS, "provider"))
+    if data.get("provider") != "subagent":
+        errors.append(failure(file, "provider", "subagent assignment must use subagent provider", "set provider to subagent"))
+    errors.extend(validate_path_items(root, path, data.get("allowed_read_paths"), "allowed_read_paths", allow_empty=False))
+    errors.extend(validate_path_items(root, path, data.get("allowed_write_paths"), "allowed_write_paths", allow_empty=True))
+    forbidden_scope = data.get("forbidden_scope")
+    if not isinstance(forbidden_scope, list):
+        errors.append(failure(file, "forbidden_scope", "forbidden_scope must be an array", "list prohibited control-plane authority"))
+    else:
+        missing = sorted(SUBAGENT_REQUIRED_FORBIDDEN_SCOPE - set(forbidden_scope))
+        if missing:
+            errors.append(failure(file, "forbidden_scope", "missing required subagent prohibitions", "add: " + ", ".join(missing)))
+    errors.extend(require_enum(file, "expected_report_type", data.get("expected_report_type"), REPORT_TYPES, "expected_report_type"))
+    errors.extend(require_enum(file, "next_owner", data.get("next_owner"), {"worker", "scheduler", "watcher", "user"}, "next_owner"))
+    validation = data.get("validation_expectation")
+    if not isinstance(validation, dict):
+        errors.append(failure(file, "validation_expectation", "validation_expectation must be an object", "record validation expectation"))
+    else:
+        errors.extend(require_fields(validation, {"required", "commands"}, file, "validation_expectation"))
+        if not isinstance(validation.get("required"), bool):
+            errors.append(failure(file, "validation_expectation.required", "required must be boolean", "set required to true or false"))
+        commands = validation.get("commands")
+        if validation.get("required") is True and (not isinstance(commands, list) or not commands):
+            errors.append(failure(file, "validation_expectation.commands", "required validation needs commands", "add validation command expectations"))
+    errors.extend(validate_next_action(root, path, data.get("next_action")))
     return errors
 
 
@@ -402,6 +536,7 @@ VALIDATORS: dict[str, Callable[[Path, Path, dict[str, Any]], list[dict[str, str]
     "loopengineer.contextBudget": validate_context_budget,
     "loopengineer.handoffManifest": validate_handoff_manifest,
     "loopengineer.report": validate_report,
+    "loopengineer.subagentAssignment": validate_subagent_assignment,
     "loopengineer.dispatchTable": validate_dispatch_table,
     "loopengineer.schedulerPool": validate_scheduler_pool,
     "loopengineer.channelState": validate_channel_state,

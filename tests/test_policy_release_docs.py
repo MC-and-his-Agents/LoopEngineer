@@ -6,12 +6,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SUBAGENT_DOC = ROOT / "docs" / "orchestration" / "subagent-boundaries.md"
 RELEASE_DOC = ROOT / "docs" / "releases" / "v0.1.0.md"
 M6_RELEASE_DOC = ROOT / "docs" / "releases" / "v0.5.0.md"
+M7_RELEASE_DOC = ROOT / "docs" / "releases" / "v0.6.0.md"
 
 
 class PolicyReleaseDocsTest(unittest.TestCase):
     def test_subagent_boundary_doc_declares_control_plane_owner(self):
         text = SUBAGENT_DOC.read_text(encoding="utf-8")
-        self.assertIn("Issue: #17", text)
+        self.assertIn("Issues: #17, #87", text)
         self.assertIn("Thread communication owns the control plane", text)
         self.assertIn("bounded helpers", text)
         self.assertIn("Subagent output is evidence", text)
@@ -58,6 +59,14 @@ class PolicyReleaseDocsTest(unittest.TestCase):
         self.assertIn("release_version: v0.5.0", text)
         self.assertIn("draft_release: false", text)
         self.assertIn("engineContractVersion: 1", text)
+        self.assertIn("adapterContractVersion: 0", text)
+
+    def test_m7_release_doc_covers_subagent_provider_closeout(self):
+        text = M7_RELEASE_DOC.read_text(encoding="utf-8")
+        self.assertIn("Issue: #95", text)
+        self.assertIn("subagent-backed `worker_lite` provider", text)
+        self.assertIn("provider-select", text)
+        self.assertIn("release_version: v0.6.0", text)
         self.assertIn("adapterContractVersion: 0", text)
 
 

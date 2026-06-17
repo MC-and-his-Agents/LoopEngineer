@@ -2,6 +2,42 @@
 
 All notable LoopEngineer product changes are recorded by product version.
 
+## 0.6.0 - 2026-06-17
+
+### Added
+
+- `worker_lite` provider contract for `direct`, `subagent`, and `thread`.
+- ADR 0005 recording the subagent/thread experiment and control-plane boundary.
+- Subagent assignment schema, examples, validation, and report provider context.
+- Deterministic provider recommendation through `provider_selection.py` and
+  `loopengineer.py provider-select`.
+- Subagent report eligibility check and optional assignment-aware
+  `consume_report.py` receipt metadata.
+
+### Changed
+
+- Worker and routing protocols now define when subagent provider is sufficient
+  and when work must escalate to a formal thread worker.
+- Report consumption guidance now treats subagent final answers as auxiliary
+  evidence, not completion proof.
+
+### Deprecated
+
+- None.
+
+### Removed
+
+- None.
+
+### Compatibility
+
+- pluginApiVersion: 1
+- protocolVersion: 1
+- engineContractVersion: 1
+- schemaMajorVersion: 1
+- skillContractVersion: 1
+- adapterContractVersion: 0
+
 ## 0.5.0 - 2026-06-16
 
 ### Added

@@ -19,6 +19,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "state-digest": ("state_digest", "state_digest.py"),
     "loop-audit": ("loop_audit", "loop_audit.py"),
     "coordination-tax": ("coordination_tax", "coordination_tax.py"),
+    "provider-select": ("provider_selection", "provider_selection.py"),
 }
 
 

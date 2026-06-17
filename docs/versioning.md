@@ -37,6 +37,7 @@ Before `1.0.0`, compatibility can still change, but changes must be documented. 
 - `0.3.0`: structure definitions and deterministic scripts.
 - `0.4.0`: loop audit, cost control, and watcher strategy.
 - `0.5.0`: runtime-neutral CLI/JSON engine contract and optional adapters.
+- `0.6.0`: subagent-backed `worker_lite` provider contract and deterministic checks.
 - `1.0.0`: stable protocol, schemas, skill entrypoints, and migration strategy.
 
 Release tags use `vX.Y.Z`, for example `v0.1.0`.

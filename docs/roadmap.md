@@ -24,6 +24,7 @@ MCP and host hooks as optional adapters only.
 | M4 | Deterministic scripts and structure definitions | #18, #19, #20, #21, #22, #35, #46 | Add schemas, validation, state digest, and report consumption scripts. |
 | M5 | Loop audit, cost control, and watcher policy | #23, #24, #25, #26, #27, #36 | Completed in `v0.4.0`: audit, coordination cost, watcher inbox, lazy channels, and watcher rotation policy. |
 | M6 | Runtime-neutral Loop Engine interface | #28, #82, #30, #29, #81, #37 | Define the CLI/JSON engine contract first; add MCP only as an optional adapter. |
+| M7 | Subagent worker_lite provider | #87, #88, #89, #90, #91, #92, #93, #94, #95 | Completed in `v0.6.0`: provider matrix, assignment/report contract, deterministic checks, and compatibility closeout. |
 | Loom integration | External plugin integration | #38, #39, #40, #41 | Define adapter boundaries before any install or register action. |
 | Release planning | Manual release process | #47 | Keep release evidence and compatibility fields explicit; see `docs/releases/v0.1.0.md`. |
 

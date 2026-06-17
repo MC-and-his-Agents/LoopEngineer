@@ -12,6 +12,7 @@ import sys
 from typing import Any
 
 import validate_structures
+import subagent_report_check
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,7 +53,7 @@ def build_receipt(
     state_file_updated: str | None,
 ) -> dict[str, Any]:
     next_action = report.get("next_action", {})
-    return {
+    receipt = {
         "schemaVersion": "1.0",
         "kind": "loopengineer.reportConsumed",
         "report_id": report["report_id"],
@@ -67,6 +68,17 @@ def build_receipt(
         "next_owner": next_action.get("owner"),
         "next_action": next_action.get("action"),
     }
+    context = report.get("provider_context")
+    if isinstance(context, dict) and context.get("provider") == "subagent":
+        receipt["provider"] = "subagent"
+        receipt["subagent_consumption"] = {
+            "assignment_id": context.get("assignment_id"),
+            "agent_id": context.get("agent_id"),
+            "thread_id": context.get("thread_id"),
+            "report_locator": context.get("report_locator"),
+            "consumption_result": "eligible",
+        }
+    return receipt
 
 
 def consume_report(
@@ -74,6 +86,7 @@ def consume_report(
     report_path: Path,
     output_dir: Path,
     *,
+    assignment_path: Path | None = None,
     consumed_by: str,
     table_updated: str,
     state_file_updated: str | None,
@@ -83,6 +96,15 @@ def consume_report(
     file = rel(root, report_path)
     if failures:
         return {"status": "fail", "receiptPath": None, "summary": None, "failures": failures}
+    if assignment_path is not None:
+        check = subagent_report_check.check_subagent_report(root, assignment_path, report_path)
+        if check["status"] != "pass":
+            return {
+                "status": "fail",
+                "receiptPath": None,
+                "summary": check.get("summary"),
+                "failures": check["failures"],
+            }
 
     report = load_report(report_path)
     if report.get("kind") != "loopengineer.report":
@@ -92,6 +114,21 @@ def consume_report(
             "summary": None,
             "failures": [
                 failure(file, "kind", "input must be loopengineer.report", "pass a report artifact")
+            ],
+        }
+    context = report.get("provider_context")
+    if isinstance(context, dict) and context.get("provider") == "subagent" and assignment_path is None:
+        return {
+            "status": "fail",
+            "receiptPath": None,
+            "summary": None,
+            "failures": [
+                failure(
+                    file,
+                    "assignment_file",
+                    "subagent report requires assignment validation before consumption",
+                    "pass --assignment-file for subagent provider reports",
+                )
             ],
         }
     report_id = report.get("report_id")
@@ -154,6 +191,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Consume a LoopEngineer report artifact.")
     parser.add_argument("--root", default=str(ROOT), help="Repository root.")
     parser.add_argument("--report-file", required=True, help="Report JSON file to consume.")
+    parser.add_argument("--assignment-file", help="Subagent assignment JSON file required for subagent provider reports.")
     parser.add_argument("--output-dir", required=True, help="Directory where the receipt will be written.")
     parser.add_argument("--consumed-by", required=True, help="Consumer thread, scheduler, or watcher id.")
     parser.add_argument("--table-updated", choices=("yes", "no"), default="no")
@@ -166,13 +204,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     root = Path(args.root).resolve()
     report_path = Path(args.report_file)
+    assignment_path = Path(args.assignment_file) if args.assignment_file else None
     output_dir = Path(args.output_dir)
     report_path = report_path if report_path.is_absolute() else root / report_path
+    assignment_path = assignment_path if assignment_path is None or assignment_path.is_absolute() else root / assignment_path
     output_dir = output_dir if output_dir.is_absolute() else root / output_dir
     payload = consume_report(
         root,
         report_path,
         output_dir,
+        assignment_path=assignment_path,
         consumed_by=args.consumed_by,
         table_updated=args.table_updated,
         state_file_updated=args.state_file_updated,

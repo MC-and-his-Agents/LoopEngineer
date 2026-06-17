@@ -115,6 +115,18 @@ watcher_full
 incident_recovery
 ```
 
+`worker_lite` 可以选择最轻足够的 provider：
+
+```text
+direct
+subagent
+thread
+```
+
+`subagent` provider 只用于短任务、低风险、隔离清楚的有界执行。它必须通过
+assignment、report locator、验证证据和报告消费回到主控制面；它不拥有状态转换、
+门禁、merge、release、共享通道或 closeout。
+
 简单任务保持简单。
 高风险任务获得结构。
 损坏的 loop 进入恢复。
@@ -237,6 +249,10 @@ LoopEngineer 首先判断任务需要多少控制面。
 多 scheduler 或共享状态任务     → watcher_full
 损坏或膨胀的 loop              → incident_recovery
 ```
+
+在 `worker_lite` 内部，当前 owner 可完成时用 `direct`；短小隔离任务可用
+`subagent`；高风险、长任务、独立 worktree、恢复敏感、外部写入或重门禁工作用
+`thread`。
 
 ### 2. 再守住上下文
 

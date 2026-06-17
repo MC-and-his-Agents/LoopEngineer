@@ -64,6 +64,7 @@ class McpAdapterTest(unittest.TestCase):
                 "loopengineer.coordination_tax",
                 "loopengineer.loop_audit",
                 "loopengineer.preflight",
+                "loopengineer.provider_selection",
                 "loopengineer.state_digest",
                 "loopengineer.validate_structures",
             ],
@@ -113,6 +114,27 @@ class McpAdapterTest(unittest.TestCase):
         result = responses[1]["result"]
         self.assertFalse(result["isError"])
         self.assertEqual(result["structuredContent"]["capability"], "context_guard")
+
+    def test_tools_call_provider_selection_success(self):
+        _, responses, _ = run_mcp(
+            [
+                initialize_request(1),
+                {"jsonrpc": "2.0", "method": "notifications/initialized"},
+                request(
+                    2,
+                    "tools/call",
+                    {
+                        "name": "loopengineer.provider_selection",
+                        "arguments": {"isolated_scope": True, "parallelizable": True},
+                    },
+                ),
+            ]
+        )
+
+        result = responses[1]["result"]
+        self.assertFalse(result["isError"])
+        self.assertEqual(result["structuredContent"]["capability"], "provider_selection")
+        self.assertEqual(result["structuredContent"]["summary"]["recommendedProvider"], "subagent")
 
     def test_underlying_engine_failure_returns_tool_error_result(self):
         _, responses, _ = run_mcp(
