@@ -89,48 +89,36 @@ jobs:
             --json number \
             --jq '.[0].number // empty')"
 
+          cat > sync-pr-body.md <<EOF
+          ## Summary
+          - Sync LoopEngineer plugin snapshot for ${RELEASE_TAG}.
+          - Update the MC-SKILLS marketplace entry and generated README plugin directory.
+
+          ## Scope
+          - Updates plugins/loopengineer from the LoopEngineer release tag.
+          - Keeps marketplace name as mcskills.
+
+          ## Validation
+          - python3 scripts/render-plugin-directory.py --check
+
+          ## Non-goals
+          - Does not publish packages.
+          - Does not change MC-SKILLS marketplace identity.
+
+          ## Risk
+          - Low. This is a generated release snapshot PR.
+          EOF
+
           if [ -n "$existing_pr" ]; then
             gh pr edit "$existing_pr" \
               --repo "$TARGET_REPO" \
               --title "chore: sync LoopEngineer ${RELEASE_TAG}" \
-              --body "## Summary
-- Sync LoopEngineer plugin snapshot for ${RELEASE_TAG}.
-- Update the MC-SKILLS marketplace entry and generated README plugin directory.
-
-## Scope
-- Updates plugins/loopengineer from the LoopEngineer release tag.
-- Keeps marketplace name as mcskills.
-
-## Validation
-- python3 scripts/render-plugin-directory.py --check
-
-## Non-goals
-- Does not publish packages.
-- Does not change MC-SKILLS marketplace identity.
-
-## Risk
-- Low. This is a generated release snapshot PR."
+              --body-file sync-pr-body.md
           else
             gh pr create \
               --repo "$TARGET_REPO" \
               --base "$TARGET_BRANCH" \
               --head "$SYNC_BRANCH" \
               --title "chore: sync LoopEngineer ${RELEASE_TAG}" \
-              --body "## Summary
-- Sync LoopEngineer plugin snapshot for ${RELEASE_TAG}.
-- Update the MC-SKILLS marketplace entry and generated README plugin directory.
-
-## Scope
-- Updates plugins/loopengineer from the LoopEngineer release tag.
-- Keeps marketplace name as mcskills.
-
-## Validation
-- python3 scripts/render-plugin-directory.py --check
-
-## Non-goals
-- Does not publish packages.
-- Does not change MC-SKILLS marketplace identity.
-
-## Risk
-- Low. This is a generated release snapshot PR."
+              --body-file sync-pr-body.md
           fi
