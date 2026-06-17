@@ -2,6 +2,18 @@
 
 # LoopEngineer
 
+[![Latest Release](https://img.shields.io/github/v/release/MC-and-his-Agents/LoopEngineer?label=release)](https://github.com/MC-and-his-Agents/LoopEngineer/releases/latest)
+[![License](https://img.shields.io/github/license/MC-and-his-Agents/LoopEngineer)](LICENSE)
+![Codex Plugin](https://img.shields.io/badge/Codex-Plugin-2563EB)
+![Loop Engine](https://img.shields.io/badge/Loop-Engine-0F766E)
+![Agent Loop](https://img.shields.io/badge/Agent-Loop-7C3AED)
+![Control Plane](https://img.shields.io/badge/Control-Plane-111827)
+![Context Safety](https://img.shields.io/badge/Context-Safety-D97706)
+![Runtime Neutral](https://img.shields.io/badge/Runtime-Neutral-475569)
+![Evidence Driven](https://img.shields.io/badge/Evidence-Driven-059669)
+![Worker Lite](https://img.shields.io/badge/Worker-Lite-0284C7)
+![Subagent Ready](https://img.shields.io/badge/Subagent-Ready-4F46E5)
+
 **The control plane for reliable AI agent loops.**
 
 AI agents are no longer just answering prompts. They plan work, edit code, call tools, spawn subtasks, wait on checks, review evidence, hand off state, and resume across sessions.
@@ -17,22 +29,6 @@ It is not a workflow checklist.
 It is not another "agent tips" repository.
 
 LoopEngineer is an **agent loop control plane**.
-
----
-
-## Project Records
-
-- [Roadmap](docs/roadmap.md) tracks the milestone order and issue scope.
-- [Architecture decisions](docs/adr/index.md) record repository, plugin, skill,
-  and context safety boundaries.
-- [No inline large artifacts policy](docs/context-safety/no-inline-large-artifacts.md)
-  defines which evidence belongs in artifacts instead of thread messages.
-- [v0.5.0 manual release plan](docs/releases/v0.5.0.md) records the M6 release
-  checklist and publication inputs.
-- [v0.1.0 manual release plan](docs/releases/v0.1.0.md) records the first
-  release checklist and tag rule.
-
----
 
 ## Why Agent Loops Need Engineering
 
