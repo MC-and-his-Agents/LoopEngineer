@@ -10,6 +10,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/prepare_manual_release.py"
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+CURRENT_TAG = f"v{CURRENT_VERSION}"
+MISMATCH_TAG = "v9.9.9"
 
 
 def run_prepare(root: Path, *args: str, env: dict[str, str] | None = None):
@@ -99,7 +102,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.0",
+                CURRENT_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -123,7 +126,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
         self.assertEqual(payload["targetCommit"], "abc1234")
         self.assertIn("## Validation", notes_text)
         for field in (
-            "productVersion: 0.6.0",
+            f"productVersion: {CURRENT_VERSION}",
             "pluginApiVersion: 1",
             "protocolVersion: 1",
             "engineContractVersion: 1",
@@ -161,8 +164,8 @@ class PrepareManualReleaseTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["releaseVersion"], "v0.6.0")
-        self.assertEqual(payload["tag"], "v0.6.0")
+        self.assertEqual(payload["releaseVersion"], CURRENT_TAG)
+        self.assertEqual(payload["tag"], CURRENT_TAG)
         self.assertEqual(payload["releaseMode"], "auto")
         self.assertTrue(payload["draftRelease"])
         self.assertIn("automatically triggered on `main`", notes_text)
@@ -197,11 +200,11 @@ class PrepareManualReleaseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             copy_minimal_repo(root)
-            (root / "VERSION").write_text("0.6.1\n", encoding="utf-8")
+            (root / "VERSION").write_text("9.9.9\n", encoding="utf-8")
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.1",
+                MISMATCH_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -226,7 +229,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.0",
+                CURRENT_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -250,7 +253,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.0",
+                CURRENT_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -280,7 +283,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, stderr = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.0",
+                CURRENT_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -308,7 +311,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.0",
+                CURRENT_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",
@@ -330,7 +333,7 @@ class PrepareManualReleaseTest(unittest.TestCase):
             code, payload, _ = run_prepare(
                 root,
                 "--release-version",
-                "v0.6.1",
+                MISMATCH_TAG,
                 "--target-commit",
                 "abc1234",
                 "--main-commit",

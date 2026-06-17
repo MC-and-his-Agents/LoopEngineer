@@ -9,6 +9,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/check_version.py"
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+MISMATCH_VERSION = "9.9.9"
 
 
 def run_check(root: Path):
@@ -43,7 +45,7 @@ class CheckVersionTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["checkedVersion"], "0.6.0")
+        self.assertEqual(payload["checkedVersion"], CURRENT_VERSION)
         self.assertEqual(payload["failures"], [])
 
     def test_version_mismatch_fails_with_file_field_and_action(self):
@@ -52,7 +54,7 @@ class CheckVersionTest(unittest.TestCase):
             copy_minimal_repo(root)
             metadata_path = root / "metadata/loopengineer.json"
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-            metadata["version"] = "0.6.1"
+            metadata["version"] = MISMATCH_VERSION
             metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
             code, payload, _ = run_check(root)
