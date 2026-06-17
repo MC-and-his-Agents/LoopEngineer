@@ -8,6 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "loopengineer.py"
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 def run_engine(*args):
@@ -98,7 +99,7 @@ class LoopEngineerCliTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
         self.assertEqual(payload["capability"], "preflight")
-        self.assertEqual(payload["result"]["productVersion"], "0.6.0")
+        self.assertEqual(payload["result"]["productVersion"], CURRENT_VERSION)
         self.assertEqual(payload["result"]["engineContractVersion"], "1")
         reminder_codes = [item["code"] for item in payload["result"]["reminders"]]
         self.assertIn("route_before_escalating", reminder_codes)

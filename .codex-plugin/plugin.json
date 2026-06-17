@@ -1,6 +1,6 @@
 {
   "name": "loopengineer",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Agent loop control-plane plugin for context safety, routing, evidence, audit, and recovery.",
   "author": {
     "name": "MC and his Agents",

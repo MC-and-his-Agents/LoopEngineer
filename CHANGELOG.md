@@ -2,6 +2,39 @@
 
 All notable LoopEngineer product changes are recorded by product version.
 
+## 0.6.1 - 2026-06-17
+
+### Added
+
+- Fail-closed automatic GitHub Release workflow for `main` release-material
+  changes, creating a public tag and draft GitHub Release.
+- Automatic release planning mode that derives `vX.Y.Z` from `VERSION` and
+  records release mode and draft status in evidence.
+- README marketing badges for LoopEngineer positioning and latest release
+  visibility.
+
+### Changed
+
+- Manual release workflow is now documented and retained as the fallback path.
+- Release notes generation distinguishes manual and automatic release triggers.
+
+### Deprecated
+
+- None.
+
+### Removed
+
+- README Project Records sections.
+
+### Compatibility
+
+- pluginApiVersion: 1
+- protocolVersion: 1
+- engineContractVersion: 1
+- schemaMajorVersion: 1
+- skillContractVersion: 1
+- adapterContractVersion: 0
+
 ## 0.6.0 - 2026-06-17
 
 ### Added

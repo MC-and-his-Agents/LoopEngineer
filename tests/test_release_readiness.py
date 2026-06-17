@@ -9,6 +9,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/check_release_readiness.py"
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+MISMATCH_VERSION = "9.9.9"
 
 
 def run_readiness(root: Path, *args: str):
@@ -52,7 +54,7 @@ class ReleaseReadinessTest(unittest.TestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
-        self.assertEqual(payload["checkedVersion"], "0.6.0")
+        self.assertEqual(payload["checkedVersion"], CURRENT_VERSION)
         self.assertEqual(payload["failures"], [])
         self.assertEqual(payload["testResult"]["status"], "skipped")
 
@@ -60,7 +62,7 @@ class ReleaseReadinessTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             copy_minimal_repo(root)
-            (root / "VERSION").write_text("0.6.1\n", encoding="utf-8")
+            (root / "VERSION").write_text(f"{MISMATCH_VERSION}\n", encoding="utf-8")
 
             code, payload, _ = run_readiness(root, "--skip-tests")
 
@@ -77,7 +79,7 @@ class ReleaseReadinessTest(unittest.TestCase):
             copy_minimal_repo(root)
             plugin_path = root / ".codex-plugin/plugin.json"
             plugin = json.loads(plugin_path.read_text(encoding="utf-8"))
-            plugin["version"] = "0.6.1"
+            plugin["version"] = MISMATCH_VERSION
             plugin_path.write_text(json.dumps(plugin), encoding="utf-8")
 
             code, payload, _ = run_readiness(root, "--skip-tests")
