@@ -61,6 +61,36 @@ class PrepareManualReleaseTest(unittest.TestCase):
             workflow.index("python3 scripts/prepare_manual_release.py"),
         )
 
+    def test_manual_workflow_passes_draft_release_to_plan(self):
+        workflow = (ROOT / ".github/workflows/manual-release.yml").read_text(encoding="utf-8")
+
+        self.assertIn("DRAFT_RELEASE: ${{ inputs.draft_release }}", workflow)
+        self.assertIn("--release-mode manual", workflow)
+        self.assertIn("args+=(--draft-release)", workflow)
+
+    def test_auto_workflow_uses_auto_draft_release_plan(self):
+        workflow = (ROOT / ".github/workflows/auto-release.yml").read_text(encoding="utf-8")
+
+        for expected in (
+            "push:",
+            "- main",
+            "- VERSION",
+            "- CHANGELOG.md",
+            "- metadata/loopengineer.json",
+            "- .codex-plugin/plugin.json",
+            '"docs/releases/v*.md"',
+            "--auto-version",
+            "--release-mode auto",
+            "--draft-release",
+            "python3 scripts/prepare_manual_release.py",
+            "git tag",
+            "git push origin",
+            "gh release create",
+            "--draft",
+            "auto-release-evidence-${{ github.run_id }}",
+        ):
+            self.assertIn(expected, workflow)
+
     def test_ready_plan_creates_release_notes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
