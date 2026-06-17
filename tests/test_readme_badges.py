@@ -22,6 +22,10 @@ class ReadmeBadgeTest(unittest.TestCase):
             "Evidence-Driven",
             "Worker-Lite",
             "Subagent-Ready",
+            "codex plugin marketplace add MC-and-his-Agents/MC-SKILLS --ref main",
+            "codex plugin marketplace upgrade",
+            "codex plugin add loopengineer@mcskills",
+            "codex plugin list",
         )
         forbidden = (
             "Project Records",

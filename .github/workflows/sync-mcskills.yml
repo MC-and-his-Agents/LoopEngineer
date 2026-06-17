@@ -1,0 +1,136 @@
+name: Sync MC-SKILLS Marketplace
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to sync, for example v0.6.1.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-mcskills-${{ github.event.release.tag_name || inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: sync loopengineer plugin snapshot
+    if: github.repository == 'MC-and-his-Agents/LoopEngineer'
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+      TARGET_REPO: MC-and-his-Agents/MC-SKILLS
+      TARGET_BRANCH: main
+      SYNC_BRANCH: sync/loopengineer-${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+      - name: Require cross-repository token
+        env:
+          MC_SKILLS_SYNC_TOKEN: ${{ secrets.MC_SKILLS_SYNC_TOKEN }}
+        run: |
+          test -n "$MC_SKILLS_SYNC_TOKEN"
+
+      - name: Checkout LoopEngineer release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Checkout MC-SKILLS
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TARGET_REPO }}
+          ref: ${{ env.TARGET_BRANCH }}
+          path: mcskills
+          token: ${{ secrets.MC_SKILLS_SYNC_TOKEN }}
+
+      - name: Sync plugin snapshot
+        run: |
+          python3 scripts/sync_mcskills_plugin.py \
+            --source . \
+            --target mcskills \
+            --release-tag "$RELEASE_TAG" \
+            > sync-result.json
+          cat sync-result.json
+
+      - name: Render MC-SKILLS directories
+        working-directory: mcskills
+        run: |
+          python3 scripts/render-plugin-directory.py
+          python3 scripts/render-plugin-directory.py --check
+
+      - name: Create or update sync pull request
+        working-directory: mcskills
+        env:
+          GH_TOKEN: ${{ secrets.MC_SKILLS_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No MC-SKILLS changes to sync."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$SYNC_BRANCH" || true
+          git checkout -B "$SYNC_BRANCH"
+          git add plugins/loopengineer .agents/plugins/marketplace.json README.md README.zh-CN.md
+          git commit -m "chore: sync LoopEngineer ${RELEASE_TAG}"
+          git push --force-with-lease origin "$SYNC_BRANCH"
+
+          existing_pr="$(gh pr list \
+            --repo "$TARGET_REPO" \
+            --head "$SYNC_BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" \
+              --repo "$TARGET_REPO" \
+              --title "chore: sync LoopEngineer ${RELEASE_TAG}" \
+              --body "## Summary
+- Sync LoopEngineer plugin snapshot for ${RELEASE_TAG}.
+- Update the MC-SKILLS marketplace entry and generated README plugin directory.
+
+## Scope
+- Updates plugins/loopengineer from the LoopEngineer release tag.
+- Keeps marketplace name as mcskills.
+
+## Validation
+- python3 scripts/render-plugin-directory.py --check
+
+## Non-goals
+- Does not publish packages.
+- Does not change MC-SKILLS marketplace identity.
+
+## Risk
+- Low. This is a generated release snapshot PR."
+          else
+            gh pr create \
+              --repo "$TARGET_REPO" \
+              --base "$TARGET_BRANCH" \
+              --head "$SYNC_BRANCH" \
+              --title "chore: sync LoopEngineer ${RELEASE_TAG}" \
+              --body "## Summary
+- Sync LoopEngineer plugin snapshot for ${RELEASE_TAG}.
+- Update the MC-SKILLS marketplace entry and generated README plugin directory.
+
+## Scope
+- Updates plugins/loopengineer from the LoopEngineer release tag.
+- Keeps marketplace name as mcskills.
+
+## Validation
+- python3 scripts/render-plugin-directory.py --check
+
+## Non-goals
+- Does not publish packages.
+- Does not change MC-SKILLS marketplace identity.
+
+## Risk
+- Low. This is a generated release snapshot PR."
+          fi

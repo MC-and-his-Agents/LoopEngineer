@@ -30,6 +30,14 @@ It is not another "agent tips" repository.
 
 LoopEngineer is an **agent loop control plane**.
 
+## Install Prompt
+
+Copy this prompt to your agent:
+
+```text
+Please install the LoopEngineer Codex plugin from the MC-SKILLS marketplace by running `codex plugin marketplace add MC-and-his-Agents/MC-SKILLS --ref main`, `codex plugin marketplace upgrade`, and `codex plugin add loopengineer@mcskills`, then verify it with `codex plugin list`.
+```
+
 ## Why Agent Loops Need Engineering
 
 A single prompt can make an agent do something useful once.
