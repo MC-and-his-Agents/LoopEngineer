@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare a fail-closed manual GitHub Release plan."""
+"""Prepare a fail-closed GitHub Release plan."""
 
 from __future__ import annotations
 
@@ -100,19 +100,38 @@ def compatibility_lines(metadata: dict[str, Any], readiness: dict[str, Any]) -> 
     return "\n".join(f"- {field}: {value}" for field, value in fields)
 
 
-def release_notes(root: Path, version: str, commit: str, readiness: dict[str, Any]) -> str:
+def release_notes(
+    root: Path,
+    version: str,
+    commit: str,
+    readiness: dict[str, Any],
+    *,
+    release_mode: str,
+    draft_release: bool,
+) -> str:
     checks = "\n".join(
         f"- {item['name']}: {item['status']}" for item in readiness.get("checks", [])
     )
     compatibility = compatibility_lines(read_metadata(root), readiness)
+    release_kind = "draft GitHub Release" if draft_release else "GitHub Release"
+    trigger = (
+        "Release is automatically triggered on `main` when release materials change."
+        if release_mode == "auto"
+        else "Release is manually triggered with `workflow_dispatch`."
+    )
+    review_line = (
+        "- Draft release publication remains a manual maintainer decision.\n"
+        if draft_release
+        else ""
+    )
     return f"""## Summary
 
-Manual GitHub Release for {version}.
+GitHub Release for {version}.
 
 ## Scope
 
 - Create tag `{version}` at `{commit}`.
-- Create a GitHub Release for `{version}`.
+- Create a {release_kind} for `{version}`.
 - Do not publish packages.
 
 ## Validation
@@ -126,15 +145,18 @@ Manual GitHub Release for {version}.
 
 ## Known Limitations
 
-- Release is manually triggered with `workflow_dispatch`.
-- Package publication is intentionally out of scope.
+{trigger}
+{review_line}- Package publication is intentionally out of scope.
 """
 
 
 def build_plan(
     root: Path,
     *,
-    release_version: str,
+    release_version: str | None,
+    auto_version: bool,
+    release_mode: str,
+    draft_release: bool,
     target_commit: str | None,
     main_commit: str | None,
     explicit_target: bool,
@@ -145,20 +167,53 @@ def build_plan(
 ) -> dict[str, Any]:
     root = root.resolve()
     failures: list[dict[str, str]] = []
-    if not TAG_RE.match(release_version):
+    if release_version is not None and auto_version:
         failures.append(
             failure(
                 "release_version",
-                "workflow_dispatch",
+                "release_plan",
                 "release_version",
-                "release version must use vMAJOR.MINOR.PATCH",
-                "use a tag-shaped version such as v0.1.0",
+                "release version cannot be provided with auto version mode",
+                "use either --release-version or --auto-version",
             )
         )
 
     readiness = check_release_readiness.run_checks(root, run_tests=run_tests)
     checked_version = readiness.get("checkedVersion")
     expected_tag = f"v{checked_version}" if checked_version else None
+    if auto_version and expected_tag is not None:
+        release_version = expected_tag
+    if release_version is None:
+        failures.append(
+            failure(
+                "release_version",
+                "release_plan",
+                "release_version",
+                "release version is required",
+                "pass --release-version or --auto-version",
+            )
+        )
+        release_version = ""
+    if release_version and not TAG_RE.match(release_version):
+        failures.append(
+            failure(
+                "release_version",
+                "release_plan",
+                "release_version",
+                "release version must use vMAJOR.MINOR.PATCH",
+                "use a tag-shaped version such as v0.1.0",
+            )
+        )
+    if release_mode not in {"manual", "auto"}:
+        failures.append(
+            failure(
+                "release_mode",
+                "release_plan",
+                "release_mode",
+                "release mode must be manual or auto",
+                "set release mode to manual or auto",
+            )
+        )
     if readiness["status"] != "pass":
         failures.append(
             failure(
@@ -173,7 +228,7 @@ def build_plan(
         failures.append(
             failure(
                 "release_version",
-                "workflow_dispatch",
+                "release_plan",
                 "release_version",
                 f"{release_version} does not match checked version {expected_tag}",
                 "use the tag that matches VERSION and release readiness",
@@ -205,8 +260,11 @@ def build_plan(
             )
         )
 
-    existing_tag = yes_no_auto(tag_exists, auto_tag_exists(root, release_version))
-    if release_exists == "auto":
+    if release_version:
+        existing_tag = yes_no_auto(tag_exists, auto_tag_exists(root, release_version))
+    else:
+        existing_tag = False
+    if release_exists == "auto" and release_version:
         probed_release, probe_error = gh_release_probe(root, release_version)
         existing_release = bool(probed_release)
         if probe_error is not None:
@@ -219,6 +277,8 @@ def build_plan(
                     "retry after GitHub CLI authentication and API access are available",
                 )
             )
+    elif release_exists == "auto":
+        existing_release = False
     else:
         existing_release = yes_no_auto(release_exists, False)
     conclusion = "ready"
@@ -239,6 +299,8 @@ def build_plan(
         "conclusion": conclusion,
         "releaseVersion": release_version,
         "tag": release_version,
+        "releaseMode": release_mode,
+        "draftRelease": draft_release,
         "targetCommit": target_commit,
         "mainCommit": main_commit,
         "explicitTarget": explicit_target,
@@ -251,7 +313,14 @@ def build_plan(
     if release_notes_file is not None and status == "pass" and target_commit is not None:
         release_notes_file.parent.mkdir(parents=True, exist_ok=True)
         release_notes_file.write_text(
-            release_notes(root, release_version, target_commit, readiness),
+            release_notes(
+                root,
+                release_version,
+                target_commit,
+                readiness,
+                release_mode=release_mode,
+                draft_release=draft_release,
+            ),
             encoding="utf-8",
         )
         evidence["releaseNotesPath"] = str(release_notes_file)
@@ -259,9 +328,12 @@ def build_plan(
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Prepare a manual release plan.")
+    parser = argparse.ArgumentParser(description="Prepare a fail-closed release plan.")
     parser.add_argument("--root", default=str(ROOT), help="Repository root.")
-    parser.add_argument("--release-version", required=True, help="Release tag, for example v0.1.0.")
+    parser.add_argument("--release-version", help="Release tag, for example v0.1.0.")
+    parser.add_argument("--auto-version", action="store_true", help="Derive the release tag from VERSION.")
+    parser.add_argument("--release-mode", choices=("manual", "auto"), default="manual")
+    parser.add_argument("--draft-release", action="store_true", help="Record that the GitHub Release will be a draft.")
     parser.add_argument("--target-commit", help="Commit intended for release.")
     parser.add_argument("--main-commit", help="Expected main commit.")
     parser.add_argument("--explicit-target", action="store_true", help="Acknowledge release of a non-main commit.")
@@ -278,6 +350,9 @@ def main(argv: list[str] | None = None) -> int:
     payload = build_plan(
         Path(args.root),
         release_version=args.release_version,
+        auto_version=args.auto_version,
+        release_mode=args.release_mode,
+        draft_release=args.draft_release,
         target_commit=args.target_commit,
         main_commit=args.main_commit,
         explicit_target=args.explicit_target,

@@ -88,6 +88,8 @@ class PrepareManualReleaseTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(payload["status"], "pass")
         self.assertEqual(payload["plan"], "create")
+        self.assertEqual(payload["releaseMode"], "manual")
+        self.assertFalse(payload["draftRelease"])
         self.assertEqual(payload["targetCommit"], "abc1234")
         self.assertIn("## Validation", notes_text)
         for field in (
@@ -100,6 +102,66 @@ class PrepareManualReleaseTest(unittest.TestCase):
             "adapterContractVersion: 0",
         ):
             self.assertIn(field, notes_text)
+
+    def test_auto_version_derives_tag_and_records_draft_mode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_minimal_repo(root)
+            notes = root / "release-notes.md"
+            code, payload, stderr = run_prepare(
+                root,
+                "--auto-version",
+                "--release-mode",
+                "auto",
+                "--draft-release",
+                "--target-commit",
+                "abc1234",
+                "--main-commit",
+                "abc1234",
+                "--tag-exists",
+                "no",
+                "--release-exists",
+                "no",
+                "--skip-tests",
+                "--release-notes-file",
+                str(notes),
+            )
+            notes_text = notes.read_text(encoding="utf-8")
+
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["status"], "pass")
+        self.assertEqual(payload["releaseVersion"], "v0.6.0")
+        self.assertEqual(payload["tag"], "v0.6.0")
+        self.assertEqual(payload["releaseMode"], "auto")
+        self.assertTrue(payload["draftRelease"])
+        self.assertIn("automatically triggered on `main`", notes_text)
+        self.assertIn("draft GitHub Release", notes_text)
+        self.assertNotIn("workflow_dispatch", notes_text)
+
+    def test_missing_release_version_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            copy_minimal_repo(root)
+            code, payload, _ = run_prepare(
+                root,
+                "--target-commit",
+                "abc1234",
+                "--main-commit",
+                "abc1234",
+                "--tag-exists",
+                "no",
+                "--release-exists",
+                "no",
+                "--skip-tests",
+            )
+
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["status"], "fail")
+        self.assertEqual(payload["plan"], "none")
+        self.assertEqual(payload["releaseVersion"], "")
+        checks = [item["check"] for item in payload["failures"]]
+        self.assertIn("release_version", checks)
 
     def test_readiness_failure_blocks_release(self):
         with tempfile.TemporaryDirectory() as tmp:

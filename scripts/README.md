@@ -21,8 +21,8 @@ Current status:
   stable JSON envelope;
 - `provider_selection.py` recommends the lightest `worker_lite` provider
   (`direct`, `subagent`, or `thread`) without spawning workers or mutating state;
-- `prepare_manual_release.py` prepares the fail-closed manual tag and GitHub
-  Release plan used by the workflow dispatch release workflow;
+- `prepare_manual_release.py` prepares the fail-closed tag and GitHub Release
+  plan used by manual and automatic release workflows;
 - `state_digest.py` builds compact state summaries for heartbeat and handoff prompts;
 - `subagent_report_check.py` validates subagent assignment/report binding before
   a subagent report can be consumed;
